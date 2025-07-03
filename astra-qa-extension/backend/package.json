@@ -1,0 +1,14 @@
+{
+  "name": "astra-qa-backend",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.24.3"
+  },
+  "devDependencies": {
+    "@vercel/node": "^3.0.0"
+  },
+  "scripts": {
+    "dev": "vercel dev"
+  }
+}
