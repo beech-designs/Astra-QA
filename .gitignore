@@ -10,3 +10,6 @@ npm-debug.log
 
 # Chrome extension build artifacts (optional)
 extension/lib/
+
+#bfg-report
+..bfg-report/*

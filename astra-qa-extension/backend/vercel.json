@@ -1,6 +1,28 @@
 {
   "version": 2,
+  "name": "astra-qa-backend",
   "builds": [
-    { "src": "api/*.js", "use": "@vercel/node" }
-  ]
+    {
+      "src": "api/*.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
+    },
+    {
+      "src": "/health",
+      "dest": "/api/health"
+    }
+  ],
+  "env": {
+    "ANTHROPIC_API_KEY": "@anthropic_api_key"
+  },
+  "functions": {
+    "api/*.js": {
+      "maxDuration": 60
+    }
+  }
 }
