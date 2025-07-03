@@ -1,0 +1,12 @@
+# Node.js
+node_modules/
+npm-debug.log
+
+# Environment files
+*.env
+
+# Vercel output
+.vercel/
+
+# Chrome extension build artifacts (optional)
+extension/lib/
