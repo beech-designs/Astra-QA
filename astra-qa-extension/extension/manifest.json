@@ -1,13 +1,18 @@
 {
   "manifest_version": 3,
-  "name": "Astra QA Extension",
-  "version": "1.0.0",
-  "description": "A Chrome extension for quality assurance analysis.",
+  "name": "Astra QA - AI Design Quality Assurance",
+  "version": "2.0.0",
+  "description": "Astra QA provides AI-powered design quality analysis for web developers and designers. Created by Beech Designs.",
   "permissions": [
     "activeTab",
     "storage",
     "sidePanel",
     "scripting"
+  ],
+  "host_permissions": [
+    "<all_urls>",
+    "https://*.vercel.app/*",
+    "https://beech-designs.com/*"
   ],
   "background": {
     "service_worker": "background.js"
@@ -15,11 +20,36 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["content.js"]
+      "js": ["lib/html2canvas.min.js", "content/content.js"],
+      "css": ["content/overlay.css"],
+      "run_at": "document_idle"
     }
   ],
+  "side_panel": {
+    "default_path": "ui/sidepanel.html"
+  },
+  "options_page": "ui/options.html",
   "action": {
-    "default_popup": "popup/popup.html"
+    "default_title": "Astra QA - AI Design Quality Assurance",
+    "default_icon": {
+      "16": "assets/icons/icon16.png",
+      "32": "assets/icons/icon32.png",
+      "48": "assets/icons/icon48.png",
+      "128": "assets/icons/icon128.png"
     }
-  }
+  },
+  "icons": {
+    "16": "assets/icons/icon16.png",
+    "32": "assets/icons/icon32.png",
+    "48": "assets/icons/icon48.png",
+    "128": "assets/icons/icon128.png"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["ui/*", "lib/*"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "author": "Beech Designs",
+  "homepage_url": "https://github.com/beech-designs/astra-qa"
 }

@@ -1,5 +1,3 @@
-// This file contains the background script for the extension, which runs in the background and manages events such as browser actions and messages from content scripts.
-
 class AstraQABackground {
   constructor() {
     this.analysisResults = new Map();
@@ -208,61 +206,87 @@ class AstraQABackground {
           'Content-Type': 'application/json',
         }
       });
-      
-      if (!response.ok) {
-        throw new Error('Failed to connect to Astra QA backend');
-      }
-      
-      const result = await response.json();
-      return { success: true, data: result };
-    } catch (error) {
-      console.error('Astra QA connection test error:', error);
-      return { success: false, error: error.message };
-    }
-  }
 
-  notifySidePanel(tabId, event, data) {
-    chrome.tabs.sendMessage(tabId, { event, data });
-  }
-
-  async updateAISettings(settings) {
-    try {
-      const { aiEnabled, backendUrl } = settings;
-      
-      if (aiEnabled !== undefined) {
-        this.aiEnabled = aiEnabled;
+      if (response.ok) {
+        const data = await response.json();
+        return {
+          success: true,
+          message: 'Astra QA backend connection successful',
+          data: data
+        };
+      } else {
+        return {
+          success: false,
+          message: `Astra QA backend responded with status ${response.status}`,
+          error: response.statusText
+        };
       }
-      
-      if (backendUrl) {
-        this.backendUrl = backendUrl;
-      }
-      
-      await chrome.storage.sync.set({
-        aiEnabled: this.aiEnabled,
-        backendUrl: this.backendUrl
-      });
-      
-      console.log('Astra QA settings updated:', {
-        aiEnabled: this.aiEnabled,
-        backendUrl: this.backendUrl
-      });
     } catch (error) {
-      console.error('Failed to update Astra QA settings:', error);
+      console.error('Astra QA connection test failed:', error);
+      return {
+        success: false,
+        message: 'Astra QA connection failed',
+        error: error.message
+      };
     }
   }
 
   async getDesignSystemConfig() {
-    // Placeholder for fetching design system configuration
-    return {};
+    try {
+      const result = await chrome.storage.sync.get(['tokenConfig', 'componentPatterns']);
+      return {
+        tokens: result.tokenConfig || {},
+        components: result.componentPatterns || {}
+      };
+    } catch (error) {
+      return { tokens: {}, components: {} };
+    }
   }
 
   async getUserPreferences() {
-    // Placeholder for fetching user preferences
-    return {};
+    try {
+      const result = await chrome.storage.sync.get(['analysisGoal', 'focusAreas', 'skipAreas']);
+      return {
+        analysisGoal: result.analysisGoal || 'general_improvement',
+        focusAreas: result.focusAreas || [],
+        skipAreas: result.skipAreas || []
+      };
+    } catch (error) {
+      return {};
+    }
+  }
+
+  async updateAISettings(settings) {
+    await chrome.storage.sync.set({
+      aiEnabled: settings.aiEnabled,
+      backendUrl: settings.backendUrl,
+      vercelDeploymentUrl: settings.vercelDeploymentUrl
+    });
+    
+    this.aiEnabled = settings.aiEnabled;
+    this.backendUrl = settings.backendUrl;
+  }
+
+  async notifySidePanel(tabId, type, data) {
+    try {
+      chrome.runtime.sendMessage({ type, tabId, data });
+    } catch (error) {
+      console.log('Astra QA side panel not available:', error);
+    }
+  }
+
+  async highlightIssueOnPage(tabId, issueId) {
+    await chrome.scripting.executeScript({
+      target: { tabId },
+      func: (issueId) => {
+        if (window.astraQA) {
+          window.astraQA.highlightIssue(issueId);
+        }
+      },
+      args: [issueId]
+    });
   }
 }
 
-// Instantiate the background service class
+// Initialize Astra QA background service
 new AstraQABackground();
-
-// Additional event listeners can be added here as needed.
