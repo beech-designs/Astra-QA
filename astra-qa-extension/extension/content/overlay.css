@@ -1,0 +1,58 @@
+.qa-marker {
+  position: fixed !important;
+  width: 20px !important;
+  height: 20px !important;
+  border-radius: 50% !important;
+  border: 2px solid white !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3) !important;
+  cursor: pointer !important;
+  z-index: 999999 !important;
+  font-size: 12px !important;
+  color: white !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-weight: bold !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  transition: transform 0.2s ease !important;
+  pointer-events: auto !important;
+}
+
+.qa-marker:hover {
+  transform: scale(1.1) !important;
+}
+
+.qa-marker--high {
+  background: #ef4444 !important;
+}
+
+.qa-marker--medium {
+  background: #f59e0b !important;
+}
+
+.qa-marker--low {
+  background: #10b981 !important;
+}
+
+.qa-highlight {
+  outline: 2px solid #3b82f6 !important;
+  outline-offset: 2px !important;
+  background: rgba(59, 130, 246, 0.1) !important;
+  animation: qa-pulse 2s ease-in-out !important;
+}
+
+@keyframes qa-pulse {
+  0%, 100% {
+    outline-color: #3b82f6;
+    background: rgba(59, 130, 246, 0.1);
+  }
+  50% {
+    outline-color: #1d4ed8;
+    background: rgba(59, 130, 246, 0.2);
+  }
+}
+
+/* Ensure markers don't interfere with page interactions */
+.qa-marker * {
+  pointer-events: none !important;
+}

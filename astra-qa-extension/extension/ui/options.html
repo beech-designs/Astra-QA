@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Design QA Tool - Settings</title>
+  <link rel="stylesheet" href="sidepanel.css">
+  <style>
+    body {
+      width: 600px;
+      margin: 20px auto;
+      padding: 20px;
+    }
+    .options-section {
+      margin-bottom: 32px;
+      padding: 24px;
+      background: white;
+      border-radius: 8px;
+      border: 1px solid var(--gray-200);
+    }
+    .options-section h2 {
+      margin-bottom: 16px;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--gray-900);
+    }
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 500;
+      color: var(--gray-700);
+    }
+    .form-control {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid var(--gray-300);
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    textarea.form-control {
+      height: 200px;
+      font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+    }
+    .form-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+    .success-message {
+      background: var(--green-500);
+      color: white;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      display: none;
+    }
+    .error-message {
+      background: var(--red-500);
+      color: white;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="options-container">
+    <header>
+      <h1>Design QA Tool Settings</h1>
+      <p>Configure design tokens and component patterns for analysis.</p>
+    </header>
+    
+    <div id="success-message" class="success-message">
+      Settings saved successfully!
+    </div>
+    
+    <div id="error-message" class="error-message">
+      Error saving settings. Please check your JSON format.
+    </div>
+
+    <div class="options-section">
+      <h2>Design Tokens</h2>
+      <p>Define your design system tokens in JSON format. These will be used to validate spacing, colors, and typography.</p>
+      
+      <div class="form-group">
+        <label for="token-config">Token Configuration (JSON)</label>
+        <textarea id="token-config" class="form-control" placeholder="Enter your design tokens JSON here..."></textarea>
+      </div>
+      
+      <details>
+        <summary>Example Token Configuration</summary>
+        <pre><code>{
+  "spacing": {
+    "4": "4px",
+    "8": "8px",
+    "16": "16px",
+    "24": "24px",
+    "32": "32px"
+  },
+  "colors": {
+    "primary-500": "#3b82f6",
+    "gray-900": "#111827",
+    "red-500": "#ef4444"
+  },
+  "typography": {
+    "text-sm": {
+      "fontSize": "14px",
+      "lineHeight": "20px"
+    },
+    "text-base": {
+      "fontSize": "16px", 
+      "lineHeight": "24px"
+    }
+  }
+}</code></pre>
+      </details>
+    </div>
+
+    <div class="options-section">
+      <h2>Component Patterns</h2>
+      <p>Define component patterns to validate proper usage of design system components.</p>
+      
+      <div class="form-group">
+        <label for="component-patterns">Component Patterns (JSON)</label>
+        <textarea id="component-patterns" class="form-control" placeholder="Enter your component patterns JSON here..."></textarea>
+      </div>
+      
+      <details>
+        <summary>Example Component Patterns</summary>
+        <pre><code>{
+  "button": {
+    "selectors": ["button", ".btn", "[role='button']"],
+    "requiredAttributes": ["type"],
+    "classes": ["btn", "btn-primary", "btn-secondary"],
+    "accessibility": {
+      "focusable": true,
+      "hasAriaLabel": false
+    }
+  },
+  "input": {
+    "selectors": ["input", "textarea", "select"],
+    "requiredAttributes": ["id", "name"],
+    "accessibility": {
+      "hasLabel": true
+    }
+  }
+}</code></pre>
+      </details>
+    </div>
+
+    <div class="form-actions">
+      <button id="save-settings" class="qa-btn qa-btn-primary">Save Settings</button>
+      <button id="reset-settings" class="qa-btn qa-btn-secondary">Reset to Defaults</button>
+      <button id="export-settings" class="qa-btn qa-btn-secondary">Export Settings</button>
+      <input type="file" id="import-settings" accept=".json" style="display: none">
+      <button id="import-settings-btn" class="qa-btn qa-btn-secondary">Import Settings</button>
+    </div>
+  </div>
+
+  <script src="options.js"></script>
+</body>
+</html>
