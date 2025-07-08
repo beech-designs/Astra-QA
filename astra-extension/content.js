@@ -5,6 +5,7 @@ class AstraExtension {
   constructor() {
     this.overlay = null;
     this.isActive = false;
+    this.isReady = false;
     this.screenshot = null;
     this.axeResults = null;
     this.domAnalysis = null;
@@ -37,6 +38,10 @@ class AstraExtension {
       }
       return true; // Keep message channel open for async response
     });
+    
+    // Mark extension as ready
+    this.isReady = true;
+    console.log('Astra extension initialized and ready');
   }
 
   createOverlay() {
@@ -51,7 +56,7 @@ class AstraExtension {
             <span class="astra-icon">🔍</span>
             <span>Astra AI Design Validator</span>
           </div>
-          <button class="astra-close" onclick="window.astraExtension.toggle()">×</button>
+          <button class="astra-close" id="astra-close-btn">×</button>
         </div>
         
         <div class="astra-tabs">
@@ -68,7 +73,7 @@ class AstraExtension {
                 Upload Design Screenshot (PNG/JPG)
               </label>
               <input type="file" id="design-upload" accept="image/*" />
-              <button class="astra-btn" onclick="window.astraExtension.analyzeDesign()">
+              <button class="astra-btn" id="analyze-design-btn">
                 Analyze Design
               </button>
             </div>
@@ -84,7 +89,7 @@ class AstraExtension {
               <label>Vertical Offset: 
                 <input type="range" id="vertical-offset" min="-100" max="100" value="0" />
               </label>
-              <button class="astra-btn" onclick="window.astraExtension.toggleOverlayImage()">
+              <button class="astra-btn" id="toggle-overlay-btn">
                 Toggle Overlay
               </button>
             </div>
@@ -94,7 +99,7 @@ class AstraExtension {
           
           <!-- Accessibility Tab -->
           <div class="astra-tab-content" id="accessibility-tab">
-            <button class="astra-btn" onclick="window.astraExtension.runAccessibilityAudit()">
+            <button class="astra-btn" id="run-accessibility-btn">
               Run Accessibility Audit
             </button>
             <div class="astra-results" id="accessibility-results"></div>
@@ -102,7 +107,7 @@ class AstraExtension {
           
           <!-- AI Analysis Tab -->
           <div class="astra-tab-content" id="analysis-tab">
-            <button class="astra-btn" onclick="window.astraExtension.runAIAnalysis()">
+            <button class="astra-btn" id="run-ai-analysis-btn">
               Generate AI Analysis
             </button>
             <div class="astra-results" id="analysis-results"></div>
@@ -153,6 +158,27 @@ class AstraExtension {
 
     document.getElementById('vertical-offset').addEventListener('input', (e) => {
       this.updateOverlayPosition();
+    });
+
+    // Button event listeners
+    document.getElementById('astra-close-btn').addEventListener('click', () => {
+      this.toggle();
+    });
+
+    document.getElementById('analyze-design-btn').addEventListener('click', () => {
+      this.analyzeDesign();
+    });
+
+    document.getElementById('toggle-overlay-btn').addEventListener('click', () => {
+      this.toggleOverlayImage();
+    });
+
+    document.getElementById('run-accessibility-btn').addEventListener('click', () => {
+      this.runAccessibilityAudit();
+    });
+
+    document.getElementById('run-ai-analysis-btn').addEventListener('click', () => {
+      this.runAIAnalysis();
     });
   }
 
@@ -400,7 +426,20 @@ class AstraExtension {
   }
 }
 
-// Initialize the extension (only once)
-if (!window.astraExtension) {
-  window.astraExtension = new AstraExtension();
+// Initialize the extension (only once) with error handling
+try {
+  if (!window.astraExtension) {
+    window.astraExtension = new AstraExtension();
+    console.log('Astra extension initialized successfully');
+  }
+} catch (error) {
+  console.error('Failed to initialize Astra extension:', error);
+  // Create a fallback object to prevent undefined errors
+  window.astraExtension = {
+    toggle: () => alert('Extension failed to initialize. Please reload the page.'),
+    runAccessibilityAudit: () => alert('Extension failed to initialize. Please reload the page.'),
+    runAIAnalysis: () => alert('Extension failed to initialize. Please reload the page.'),
+    analyzeDesign: () => alert('Extension failed to initialize. Please reload the page.'),
+    toggleOverlayImage: () => alert('Extension failed to initialize. Please reload the page.')
+  };
 }

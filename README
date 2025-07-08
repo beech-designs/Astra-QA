@@ -136,7 +136,17 @@ mkdir astra-extension
 cd astra-extension
 ```
 
-### 2. Add Extension Files
+### 2. Download axe-core Library
+
+Download axe-core locally to avoid CSP issues:
+```bash
+# In your astra-extension directory
+curl -o axe.min.js https://cdnjs.cloudflare.com/ajax/libs/axe-core/4.8.2/axe.min.js
+```
+
+Or manually download from https://cdnjs.cloudflare.com/ajax/libs/axe-core/4.8.2/axe.min.js and save as `axe.min.js`
+
+### 3. Add Extension Files
 
 Create these files in your `astra-extension` directory:
 
@@ -144,8 +154,9 @@ Create these files in your `astra-extension` directory:
 - `content.js` (from Content Script artifact)
 - `overlay.css` (from Overlay CSS artifact)
 - `popup.html` (from Extension Popup artifact)
+- `axe.min.js` (download from https://cdnjs.cloudflare.com/ajax/libs/axe-core/4.8.2/axe.min.js)
 
-### 3. Create Icons Directory
+### 4. Create Icons Directory
 
 ```bash
 mkdir icons
@@ -156,14 +167,14 @@ Add these icon files (create simple PNG icons or use placeholders):
 - `icons/icon48.png` (48x48 pixels)
 - `icons/icon128.png` (128x128 pixels)
 
-### 4. Update Backend URL
+### 5. Update Backend URL
 
 In `content.js`, update the backend URL to match your Vercel deployment:
 ```javascript
 this.backendUrl = 'https://your-astra-backend.vercel.app';
 ```
 
-### 5. Load Extension in Chrome
+### 6. Load Extension in Chrome
 
 1. Open Chrome and go to `chrome://extensions/`
 2. Enable "Developer mode" (top right toggle)
@@ -233,6 +244,12 @@ The extension requests these permissions:
 - Check `chrome://extensions/` for errors
 - Verify all files are in correct locations
 - Check Chrome DevTools console for errors
+
+### Popup Connection Error
+- Refresh the page and try again
+- Extension doesn't work on chrome:// pages
+- Check if content script loaded properly in DevTools
+- Try clicking the extension icon instead of keyboard shortcut
 
 ### Accessibility Audit Fails
 - Ensure axe-core loads from CDN
