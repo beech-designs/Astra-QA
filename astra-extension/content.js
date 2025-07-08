@@ -14,9 +14,6 @@ class AstraExtension {
   }
 
   init() {
-    // Load axe-core library
-    this.loadAxeCore();
-    
     // Create overlay UI
     this.createOverlay();
     
