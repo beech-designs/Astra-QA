@@ -1,0 +1,298 @@
+# 🔍 Astra - AI Design & Accessibility Validator
+
+## Complete Setup & Deployment Guide
+
+Astra is a Chrome Extension that overlays websites to validate design consistency and accessibility using AI-powered analysis. This guide will help you set up both the Chrome extension and the Vercel backend.
+
+## 🏗️ Architecture Overview
+
+```
+Chrome Extension (Frontend)
+    ↓ API Calls
+Vercel Backend (Serverless Functions)
+    ↓ AI Analysis
+Claude API (Anthropic)
+```
+
+## 📋 Prerequisites
+
+- Node.js 18+ installed
+- Chrome browser for extension development
+- Vercel account for backend deployment
+- Claude API key from Anthropic
+
+## 🚀 Backend Setup (Vercel)
+
+### 1. Create Vercel Project
+
+```bash
+# Clone or create your project directory
+mkdir astra-backend
+cd astra-backend
+
+# Initialize package.json
+npm init -y
+
+# Install dependencies
+npm install next react react-dom
+
+# Create directory structure
+mkdir -p pages/api
+mkdir -p pages
+```
+
+### 2. Create Required Files
+
+Create these files in your `astra-backend` directory:
+
+**package.json**
+```json
+{
+  "name": "astra-backend",
+  "version": "1.0.0",
+  "description": "Backend API for Astra Chrome Extension",
+  "main": "index.js",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "next": "^13.0.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
+```
+
+**vercel.json**
+```json
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "pages/api/**/*.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/pages/api/$1"
+    }
+  ]
+}
+```
+
+### 3. Add API Routes
+
+Copy the API routes from the "Vercel Backend API Routes" artifact:
+- `pages/api/analyze-design.js`
+- `pages/api/ai-analysis.js`
+- `pages/api/health.js`
+- `pages/index.js`
+
+### 4. Deploy to Vercel
+
+```bash
+# Install Vercel CLI
+npm install -g vercel
+
+# Deploy to Vercel
+vercel
+
+# Follow the prompts to create a new project
+```
+
+### 5. Configure Environment Variables
+
+In your Vercel dashboard:
+1. Go to your project settings
+2. Navigate to "Environment Variables"
+3. Add: `CLAUDE_API_KEY` with your Claude API key
+
+**Getting a Claude API Key:**
+1. Visit https://console.anthropic.com/
+2. Create an account or sign in
+3. Generate a new API key
+4. Copy the key for use in Vercel
+
+### 6. Update Backend URL
+
+After deployment, update the `backendUrl` in `content.js`:
+```javascript
+this.backendUrl = 'https://your-vercel-app.vercel.app'; // Replace with your actual URL
+```
+
+## 🔧 Chrome Extension Setup
+
+### 1. Create Extension Directory
+
+```bash
+mkdir astra-extension
+cd astra-extension
+```
+
+### 2. Add Extension Files
+
+Create these files in your `astra-extension` directory:
+
+- `manifest.json` (from Chrome Extension Manifest artifact)
+- `content.js` (from Content Script artifact)
+- `overlay.css` (from Overlay CSS artifact)
+- `popup.html` (from Extension Popup artifact)
+
+### 3. Create Icons Directory
+
+```bash
+mkdir icons
+```
+
+Add these icon files (create simple PNG icons or use placeholders):
+- `icons/icon16.png` (16x16 pixels)
+- `icons/icon48.png` (48x48 pixels)
+- `icons/icon128.png` (128x128 pixels)
+
+### 4. Update Backend URL
+
+In `content.js`, update the backend URL to match your Vercel deployment:
+```javascript
+this.backendUrl = 'https://your-astra-backend.vercel.app';
+```
+
+### 5. Load Extension in Chrome
+
+1. Open Chrome and go to `chrome://extensions/`
+2. Enable "Developer mode" (top right toggle)
+3. Click "Load unpacked"
+4. Select your `astra-extension` directory
+5. The extension should now appear in your toolbar
+
+## 🧪 Testing the Extension
+
+### 1. Test Basic Functionality
+
+1. Visit any website (e.g., https://example.com)
+2. Click the Astra extension icon or press Alt+A
+3. The overlay panel should appear
+
+### 2. Test Accessibility Audit
+
+1. In the Astra panel, click "Accessibility" tab
+2. Click "Run Accessibility Audit"
+3. Should show accessibility results (or error if axe-core fails to load)
+
+### 3. Test AI Analysis
+
+1. Click "AI Analysis" tab
+2. Click "Generate AI Analysis"
+3. Should communicate with your Vercel backend and return Claude analysis
+
+## 🔧 Required Manual Configuration
+
+### Environment Variables
+```bash
+# Required in Vercel dashboard
+CLAUDE_API_KEY=your_claude_api_key_here
+```
+
+### Extension Permissions
+The extension requests these permissions:
+- `activeTab` - Access current tab content
+- `storage` - Store user preferences
+- `scripting` - Inject content scripts
+- `host_permissions` - Access all websites
+
+## 📊 Features
+
+### ✅ Implemented Features
+- **Overlay UI Panel** - Floating interface with tabs
+- **DOM Style Extraction** - Automatic `getComputedStyle()` analysis
+- **Accessibility Audit** - axe-core integration
+- **Claude AI Analysis** - Backend API with AI insights
+- **Screenshot Upload** - Design comparison interface
+- **Keyboard Shortcuts** - Alt+A to toggle
+
+### ⚠️ Manual Configuration Required
+- **Vercel Backend URL** - Update in `content.js`
+- **Claude API Key** - Add to Vercel environment variables
+- **Extension Icons** - Create PNG icons in `icons/` directory
+
+### 🔄 Optional Enhancements
+- **html2canvas integration** - For automatic page screenshots
+- **pixelmatch comparison** - Visual diff analysis
+- **Export functionality** - Save reports as PDF/HTML
+- **Design system detection** - Identify CSS frameworks
+
+## 🐛 Troubleshooting
+
+### Extension Won't Load
+- Check `chrome://extensions/` for errors
+- Verify all files are in correct locations
+- Check Chrome DevTools console for errors
+
+### Accessibility Audit Fails
+- Ensure axe-core loads from CDN
+- Check network connectivity
+- Verify CSP policies don't block external scripts
+
+### AI Analysis Doesn't Work
+- Verify Vercel backend is deployed and accessible
+- Check Claude API key is configured correctly
+- Monitor Vercel function logs for errors
+
+### Backend API Errors
+- Check Vercel deployment logs
+- Verify environment variables are set
+- Test endpoints individually with curl/Postman
+
+## 📚 Development Notes
+
+### Content Script Limitations
+- Runs in isolated context from page
+- Limited access to page's JavaScript variables
+- Must use `window.postMessage` for page communication
+
+### Vercel Serverless Functions
+- 10-second timeout limit
+- Limited to 50MB memory
+- Cold start latency possible
+
+### Claude API Considerations
+- Rate limits apply
+- Token usage costs
+- Response time varies (2-10 seconds)
+
+## 🚀 Deployment Checklist
+
+- [ ] Vercel backend deployed successfully
+- [ ] Claude API key configured in Vercel
+- [ ] Backend URL updated in content.js
+- [ ] Chrome extension loaded in developer mode
+- [ ] Icons created and added to extension
+- [ ] Tested basic functionality
+- [ ] Tested accessibility audit
+- [ ] Tested AI analysis
+- [ ] Verified keyboard shortcuts work
+
+## 📞 Support
+
+For issues or questions:
+1. Check browser console for errors
+2. Review Vercel function logs
+3. Test backend endpoints directly
+4. Verify all environment variables are set
+
+## 🔒 Security Notes
+
+- Never commit API keys to version control
+- Use environment variables for sensitive data
+- Validate all user inputs in backend
+- Implement rate limiting if needed
+
+---
+
+**Ready to analyze websites with AI-powered insights! 🚀**
