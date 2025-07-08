@@ -1,17 +1,18 @@
 {
   "name": "astra-backend",
   "version": "1.0.0",
+  "private": true,
   "description": "Backend API for Astra Chrome Extension",
-  "main": "index.js",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "lint": "next lint"
   },
   "dependencies": {
-    "next": "^13.0.0",
-    "react": "^18.0.0",
-    "react-dom": "^18.0.0"
+    "next": "^15.3.5",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
   },
   "engines": {
     "node": ">=18.0.0"
