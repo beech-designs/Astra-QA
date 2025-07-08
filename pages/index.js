@@ -1,3 +1,4 @@
+// pages/index.js
 // Landing page for Astra Backend API
 
 import React from 'react';
@@ -340,6 +341,43 @@ export default function Home() {
           </ul>
         </section>
 
+        {/* Status */}
+        <section style={{
+          background: '#f0fff4',
+          border: '1px solid #9ae6b4',
+          borderRadius: '12px',
+          padding: '32px',
+          marginBottom: '40px'
+        }}>
+          <h2 style={{
+            fontSize: '1.5rem',
+            fontWeight: '600',
+            marginBottom: '16px',
+            color: '#276749'
+          }}>
+            ✅ Status
+          </h2>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: '16px',
+            color: '#2f855a'
+          }}>
+            <div>
+              <strong>✅ CORS:</strong> Enabled for Chrome extensions
+            </div>
+            <div>
+              <strong>✅ API:</strong> All endpoints operational
+            </div>
+            <div>
+              <strong>✅ AI:</strong> Claude integration ready
+            </div>
+            <div>
+              <strong>✅ Health:</strong> Monitoring active
+            </div>
+          </div>
+        </section>
+
         {/* Footer */}
         <footer style={{
           textAlign: 'center',
@@ -351,7 +389,7 @@ export default function Home() {
             🔍 Astra Backend API - Powered by Claude AI
           </p>
           <p style={{ margin: '0', fontSize: '0.875rem' }}>
-            Built for the Astra Chrome Extension
+            Built for the Astra Chrome Extension - Version 1.0.0
           </p>
         </footer>
       </div>

@@ -265,6 +265,7 @@ The extension requests these permissions:
 - Check Vercel deployment logs
 - Verify environment variables are set
 - Test endpoints individually with curl/Postman
+- Ensure CORS headers are properly configured for Chrome extension requests
 
 ## 📚 Development Notes
 
