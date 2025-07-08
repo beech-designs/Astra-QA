@@ -10,7 +10,12 @@ class AstraExtension {
     this.domAnalysis = null;
     this.backendUrl = 'https://astra-qa.vercel.app';
     
-    this.init();
+    // Wait for DOM to be ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => this.init());
+    } else {
+      this.init();
+    }
   }
 
   init() {
@@ -28,7 +33,9 @@ class AstraExtension {
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       if (request.action === 'toggle') {
         this.toggle();
+        sendResponse({success: true});
       }
+      return true; // Keep message channel open for async response
     });
   }
 
@@ -393,5 +400,7 @@ class AstraExtension {
   }
 }
 
-// Initialize the extension
-window.astraExtension = new AstraExtension();
+// Initialize the extension (only once)
+if (!window.astraExtension) {
+  window.astraExtension = new AstraExtension();
+}
