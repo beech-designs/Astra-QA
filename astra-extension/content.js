@@ -32,15 +32,6 @@ class AstraExtension {
     });
   }
 
-  loadAxeCore() {
-    const script = document.createElement('script');
-    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/axe-core/4.8.2/axe.min.js';
-    script.onload = () => {
-      console.log('axe-core loaded successfully');
-    };
-    document.head.appendChild(script);
-  }
-
   createOverlay() {
     this.overlay = document.createElement('div');
     this.overlay.id = 'astra-overlay';
