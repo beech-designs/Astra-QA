@@ -8,8 +8,3 @@ npm-debug.log
 # Vercel output
 .vercel/
 
-# Chrome extension build artifacts (optional)
-extension/lib/
-
-#bfg-report
-..bfg-report/*

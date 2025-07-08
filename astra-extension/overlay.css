@@ -1,0 +1,351 @@
+/* Astra Overlay Styles */
+#astra-overlay {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 400px;
+  max-height: 80vh;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  z-index: 2147483647;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #374151;
+  overflow: hidden;
+  transform: translateX(0);
+  transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+}
+
+#astra-overlay.astra-hidden {
+  transform: translateX(100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.astra-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: 80vh;
+}
+
+.astra-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 12px 12px 0 0;
+}
+
+.astra-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.astra-icon {
+  font-size: 18px;
+}
+
+.astra-close {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+
+.astra-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.astra-tabs {
+  display: flex;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.astra-tab {
+  flex: 1;
+  padding: 12px 16px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: #6b7280;
+  transition: all 0.2s ease;
+  border-bottom: 2px solid transparent;
+}
+
+.astra-tab:hover {
+  color: #374151;
+  background: #f3f4f6;
+}
+
+.astra-tab.active {
+  color: #667eea;
+  background: #ffffff;
+  border-bottom-color: #667eea;
+}
+
+.astra-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.astra-tab-content {
+  display: none;
+}
+
+.astra-tab-content.active {
+  display: block;
+}
+
+.astra-upload-section {
+  margin-bottom: 20px;
+}
+
+.astra-upload-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #374151;
+}
+
+#design-upload {
+  width: 100%;
+  padding: 8px;
+  border: 2px dashed #d1d5db;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+#design-upload:hover {
+  border-color: #667eea;
+}
+
+.astra-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.astra-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.astra-btn:active {
+  transform: translateY(0);
+}
+
+.astra-overlay-controls {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.astra-overlay-controls label {
+  display: block;
+  margin-bottom: 12px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.astra-overlay-controls input[type="range"] {
+  width: 100%;
+  margin: 8px 0;
+}
+
+.astra-results {
+  margin-top: 20px;
+}
+
+.astra-loading {
+  text-align: center;
+  padding: 20px;
+  color: #6b7280;
+}
+
+.astra-loading::before {
+  content: '⏳';
+  font-size: 20px;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.astra-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+}
+
+.astra-audit-summary {
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.astra-audit-summary h3 {
+  margin: 0 0 12px 0;
+  color: #0369a1;
+  font-size: 16px;
+}
+
+.astra-stats {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.astra-stat {
+  background: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid #e0f2fe;
+}
+
+.astra-violation {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.astra-violation h4 {
+  margin: 0 0 8px 0;
+  color: #ea580c;
+  font-size: 14px;
+}
+
+.astra-violation p {
+  margin: 4px 0;
+  font-size: 13px;
+  color: #7c2d12;
+}
+
+.astra-violation details {
+  margin-top: 8px;
+}
+
+.astra-violation summary {
+  cursor: pointer;
+  color: #ea580c;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.astra-violation a {
+  color: #ea580c;
+  text-decoration: none;
+}
+
+.astra-violation a:hover {
+  text-decoration: underline;
+}
+
+.astra-analysis-result,
+.astra-ai-analysis {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.astra-analysis-result h3,
+.astra-ai-analysis h3 {
+  margin: 0 0 12px 0;
+  color: #15803d;
+  font-size: 16px;
+}
+
+.astra-analysis-content {
+  color: #166534;
+  line-height: 1.6;
+}
+
+/* Design Overlay Image */
+.astra-design-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 2147483646;
+  opacity: 0.5;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: top left;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  #astra-overlay {
+    width: 90vw;
+    right: 5vw;
+    max-height: 90vh;
+  }
+}
+
+/* Accessibility improvements */
+.astra-btn:focus,
+.astra-tab:focus,
+.astra-close:focus {
+  outline: 2px solid #667eea;
+  outline-offset: 2px;
+}
+
+/* Scrollbar styling */
+.astra-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.astra-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.astra-content::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.astra-content::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
