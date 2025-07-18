@@ -19,9 +19,9 @@ export default async function handler(req, res) {
     const { domStyles, designScreenshot, pageScreenshot, url } = req.body;
 
     // TODO: Replace with actual Claude API key
-    const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
+    const CLAUDE_API_KEY = process.env.CLAUDE_API_KEY;
     
-    if (!ANTHROPIC_API_KEY) {
+    if (!CLAUDE_API_KEY) {
       return res.status(500).json({ error: 'Claude API key not configured' });
     }
 
@@ -72,7 +72,7 @@ Please provide a structured analysis with specific recommendations for improveme
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': ANTHROPIC_API_KEY,
+        'x-api-key': CLAUDE_API_KEY,
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({

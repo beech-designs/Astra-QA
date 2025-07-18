@@ -840,7 +840,7 @@ class AstraExtension {
         
         <h5>Common Causes:</h5>
         <ul>
-          <li><strong>Missing ANTHROPIC API Key:</strong> Check if ANTHROPIC_API_KEY is set in Vercel environment variables</li>
+          <li><strong>Missing ANTHROPIC API Key:</strong> Check if CLAUDE_API_KEY is set in Vercel environment variables</li>
           <li><strong>Claude API Issues:</strong> The Claude API might be down or returning errors</li>
           <li><strong>Backend Code Error:</strong> There might be a bug in the API endpoint</li>
           <li><strong>Payload Issues:</strong> The request data might be malformed</li>
