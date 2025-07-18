@@ -595,24 +595,575 @@ class AstraExtension {
         console.log('Reduced payload size due to size limits');
       }
 
-      const response = await fetch(this.backendUrl + '/api/ai-analysis', {
+      console.log('Sending AI analysis request via background script...');
+      
+      // Use background script to make the API call (bypasses ad blockers)
+      const response = await new Promise((resolve, reject) => {
+        chrome.runtime.sendMessage({
+          action: 'aiAnalysis',
+          data: analysisData
+        }, (response) => {
+          if (chrome.runtime.lastError) {
+            reject(new Error(chrome.runtime.lastError.message));
+          } else {
+            resolve(response);
+          }
+        });
+      });
+
+      console.log('Background script response:', response);
+
+      if (!response.success) {
+        throw new Error(response.error || 'Background script request failed');
+      }
+
+      this.displayAIResults(response.data);
+    } catch (error) {
+      console.error('AI Analysis Error:', error);
+      
+      // Check if it's a background script communication error
+      if (error.message.includes('runtime') || error.message.includes('Extension context')) {
+        resultsDiv.innerHTML = `
+          <div class="astra-error">
+            <h4>🔧 Extension Communication Error</h4>
+            <p>Cannot communicate with background script. Please try:</p>
+            <ul>
+              <li>Reload the extension in chrome://extensions/</li>
+              <li>Refresh this page</li>
+              <li>Check browser console for errors</li>
+            </ul>
+            <button class="astra-btn" onclick="window.location.reload()">Reload Page</button>
+          </div>
+        `;
+      } else {
+        // Show the enhanced error display
+        this.showServerError(error.message);
+      }
+    }
+  }
+
+  async analyzeDesign() {
+    const resultsDiv = document.getElementById('design-results');
+    resultsDiv.innerHTML = '<div class="astra-loading">Analyzing design...</div>';
+
+    try {
+      this.domAnalysis = this.extractDOMStyles();
+      
+      const analysisData = {
+        domStyles: this.domAnalysis,
+        designScreenshot: this.screenshot ? this.screenshot.substring(0, 50000) : null,
+        url: window.location.href
+      };
+
+      const payloadSize = JSON.stringify(analysisData).length;
+      if (payloadSize > 800000) {
+        analysisData.domStyles = analysisData.domStyles.slice(0, 150);
+        analysisData.designScreenshot = null;
+      }
+
+      console.log('Sending design analysis request via background script...');
+      
+      // Use background script to make the API call (bypasses ad blockers)
+      const response = await new Promise((resolve, reject) => {
+        chrome.runtime.sendMessage({
+          action: 'designAnalysis',
+          data: analysisData
+        }, (response) => {
+          if (chrome.runtime.lastError) {
+            reject(new Error(chrome.runtime.lastError.message));
+          } else {
+            resolve(response);
+          }
+        });
+      });
+
+      console.log('Background script response:', response);
+
+      if (!response.success) {
+        throw new Error(response.error || 'Background script request failed');
+      }
+
+      this.displayDesignResults(response.data);
+    } catch (error) {
+      console.error('Design Analysis Error:', error);
+      resultsDiv.innerHTML = '<div class="astra-error">Error: ' + error.message + '</div>';
+    }
+  }
+
+  async testBackendConnection() {
+    console.log('Testing backend connection via background script...');
+    
+    const resultsDiv = document.getElementById('analysis-results');
+    resultsDiv.innerHTML = '<div class="astra-loading">Testing backend connection...</div>';
+    
+    try {
+      console.log('🔍 Sending health check via background script...');
+      
+      // Use background script for health check (bypasses ad blockers)
+      const response = await new Promise((resolve, reject) => {
+        chrome.runtime.sendMessage({
+          action: 'healthCheck'
+        }, (response) => {
+          if (chrome.runtime.lastError) {
+            reject(new Error(chrome.runtime.lastError.message));
+          } else {
+            resolve(response);
+          }
+        });
+      });
+
+      console.log('Background script health check response:', response);
+
+      if (!response.success) {
+        throw new Error(response.error || 'Health check failed');
+      }
+
+      const healthResult = response.data;
+      
+      // Check website blocking characteristics
+      const currentDomain = window.location.hostname;
+      const isHTTPS = window.location.protocol === 'https:';
+      const cspMeta = document.querySelector('meta[http-equiv="Content-Security-Policy"]');
+      const cspHeader = cspMeta ? cspMeta.content : 'No CSP meta tag found';
+      
+      console.log('Current domain:', currentDomain);
+      console.log('Is HTTPS:', isHTTPS);
+      console.log('CSP Policy:', cspHeader);
+      
+      // Success! Show results
+      resultsDiv.innerHTML = `
+        <div class="astra-analysis-result">
+          <h3>✅ Connection Test Successful!</h3>
+          <div class="astra-analysis-content">
+            <h4>🎉 Ad Blocker Bypass Working!</h4>
+            <p>Using background script successfully bypassed client-side blocking.</p>
+            
+            <h5>Backend Status:</h5>
+            <ul>
+              <li><strong>Status:</strong> ${healthResult.status}</li>
+              <li><strong>Service:</strong> ${healthResult.service}</li>
+              <li><strong>CORS:</strong> ${healthResult.cors || 'Enabled'}</li>
+              <li><strong>Timestamp:</strong> ${healthResult.timestamp}</li>
+            </ul>
+            
+            <h5>Website Info:</h5>
+            <ul>
+              <li><strong>Domain:</strong> ${currentDomain}</li>
+              <li><strong>Protocol:</strong> ${window.location.protocol}</li>
+              <li><strong>Security Level:</strong> ${this.assessSiteSecurity()}</li>
+              <li><strong>CSP:</strong> ${cspHeader.includes('connect-src') ? 'Has connect-src policy' : 'No connect-src restrictions'}</li>
+            </ul>
+            
+            <p><strong>✅ The extension is now using a background script to bypass ad blockers and other client-side blocking!</strong></p>
+            
+            <div class="astra-debug-actions">
+              <button class="astra-btn" onclick="window.astraExtension.runAIAnalysis()">Try AI Analysis</button>
+              <button class="astra-btn" onclick="window.astraExtension.tryMockAnalysis()">Mock Analysis</button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+    } catch (error) {
+      console.error('Connection test failed:', error);
+      
+      // Analyze the error type
+      let errorAnalysis = '';
+      let blockingType = 'Unknown';
+      
+      if (error.message.includes('runtime') || error.message.includes('Extension context')) {
+        blockingType = 'Extension Communication Error';
+        errorAnalysis = `
+          <h4>🔧 Extension Communication Error</h4>
+          <p>Cannot communicate with the background script.</p>
+          <h5>Solutions:</h5>
+          <ul>
+            <li><strong>Reload Extension:</strong> Go to chrome://extensions/ and reload Astra</li>
+            <li><strong>Refresh Page:</strong> Reload this webpage</li>
+            <li><strong>Check Console:</strong> Look for errors in browser console</li>
+            <li><strong>Reinstall Extension:</strong> Remove and reinstall if problems persist</li>
+          </ul>
+        `;
+      } else if (error.message.includes('500')) {
+        blockingType = 'Backend Server Error';
+        errorAnalysis = `
+          <h4>🚨 Backend Server Error</h4>
+          <p>The backend API is reachable but failing to process requests.</p>
+          <h5>Common Causes:</h5>
+          <ul>
+            <li><strong>Missing Claude API Key:</strong> Check Vercel environment variables</li>
+            <li><strong>Claude API Issues:</strong> The AI service might be down</li>
+            <li><strong>Backend Code Error:</strong> Check Vercel function logs</li>
+            <li><strong>Memory/Timeout:</strong> Request might be too large</li>
+          </ul>
+        `;
+      } else {
+        blockingType = 'Network/Connection Error';
+        errorAnalysis = `
+          <h4>🌐 Network/Connection Error</h4>
+          <p>Still having connection issues even with background script bypass.</p>
+          <h5>Possible Causes:</h5>
+          <ul>
+            <li><strong>Network Firewall:</strong> Corporate/institutional blocking</li>
+            <li><strong>DNS Issues:</strong> Cannot resolve backend domain</li>
+            <li><strong>Backend Down:</strong> Vercel deployment might be offline</li>
+            <li><strong>Extension Permissions:</strong> Missing required permissions</li>
+          </ul>
+        `;
+      }
+      
+      resultsDiv.innerHTML = `
+        <div class="astra-error">
+          <h3>❌ Connection Test Failed</h3>
+          <p><strong>Error Type:</strong> ${blockingType}</p>
+          <p><strong>Error Message:</strong> ${error.message}</p>
+          
+          ${errorAnalysis}
+          
+          <div class="astra-debug-actions">
+            <button class="astra-btn" onclick="window.astraExtension.tryMockAnalysis()">Try Mock Analysis</button>
+            <button class="astra-btn" onclick="window.astraExtension.viewDebugInfo()">View Debug Info</button>
+            <button class="astra-btn" onclick="window.location.reload()">Reload Page</button>
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  showServerError(errorDetails) {
+    const resultsDiv = document.getElementById('analysis-results');
+    resultsDiv.innerHTML = `
+      <div class="astra-error">
+        <h4>🚨 Backend Server Error (500)</h4>
+        <p><strong>Issue:</strong> The backend API is failing to process your request.</p>
+        <p><strong>Error Details:</strong> ${errorDetails}</p>
+        
+        <h5>Common Causes:</h5>
+        <ul>
+          <li><strong>Missing Claude API Key:</strong> Check if CLAUDE_API_KEY is set in Vercel environment variables</li>
+          <li><strong>Claude API Issues:</strong> The Claude API might be down or returning errors</li>
+          <li><strong>Backend Code Error:</strong> There might be a bug in the API endpoint</li>
+          <li><strong>Payload Issues:</strong> The request data might be malformed</li>
+        </ul>
+        
+        <div class="astra-debug-actions">
+          <button class="astra-btn" onclick="window.astraExtension.testBackendConnection()">Test Backend Health</button>
+          <button class="astra-btn" onclick="window.astraExtension.tryMockAnalysis()">Try Mock Analysis</button>
+          <button class="astra-btn" onclick="window.astraExtension.viewPayload()">View Request Data</button>
+        </div>
+      </div>
+    `;
+  }
+
+  async testBackendConnection() {
+    console.log('Testing backend connection...');
+    
+    const resultsDiv = document.getElementById('analysis-results');
+    resultsDiv.innerHTML = '<div class="astra-loading">Testing backend connection...</div>';
+    
+    try {
+      // Test 1: Basic health check
+      console.log('🔍 Test 1: Basic health check');
+      const healthResponse = await fetch(this.backendUrl + '/api/health');
+      const healthResult = await healthResponse.json();
+      
+      console.log('Health check result:', healthResult);
+      
+      if (!healthResponse.ok) {
+        throw new Error('Health check failed: ' + healthResponse.status);
+      }
+      
+      // Test 2: Check if current website is blocking requests
+      console.log('🔍 Test 2: Website blocking check');
+      const currentDomain = window.location.hostname;
+      const isHTTPS = window.location.protocol === 'https:';
+      
+      console.log('Current domain:', currentDomain);
+      console.log('Is HTTPS:', isHTTPS);
+      console.log('User agent:', navigator.userAgent);
+      
+      // Test 3: Check CSP headers
+      console.log('🔍 Test 3: Content Security Policy check');
+      const cspMeta = document.querySelector('meta[http-equiv="Content-Security-Policy"]');
+      const cspHeader = cspMeta ? cspMeta.content : 'No CSP meta tag found';
+      console.log('CSP Policy:', cspHeader);
+      
+      // Test 4: Try a simple API call
+      console.log('🔍 Test 4: Simple API test');
+      const testData = {
+        domStyles: [{ tag: 'test', id: 'test' }],
+        accessibilityResults: null,
+        url: window.location.href,
+        screenshot: null
+      };
+      
+      const testResponse = await fetch(this.backendUrl + '/api/ai-analysis', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(analysisData)
+        body: JSON.stringify(testData)
       });
-
-      if (!response.ok) {
-        throw new Error('HTTP ' + response.status + ': ' + response.statusText);
+      
+      console.log('Test API response status:', testResponse.status);
+      
+      if (!testResponse.ok) {
+        const errorBody = await testResponse.text();
+        console.log('Test API error body:', errorBody);
+        throw new Error('API test failed: ' + testResponse.status + ' - ' + errorBody);
       }
-
-      const result = await response.json();
-      this.displayAIResults(result);
+      
+      const testResult = await testResponse.json();
+      console.log('Test API result:', testResult);
+      
+      // If we get here, everything works
+      resultsDiv.innerHTML = `
+        <div class="astra-analysis-result">
+          <h3>✅ Connection Test Successful!</h3>
+          <div class="astra-analysis-content">
+            <p><strong>Backend Status:</strong> ${healthResult.status}</p>
+            <p><strong>Service:</strong> ${healthResult.service}</p>
+            <p><strong>Current Domain:</strong> ${currentDomain}</p>
+            <p><strong>Protocol:</strong> ${window.location.protocol}</p>
+            <p><strong>CSP Status:</strong> ${cspHeader.includes('connect-src') ? 'Has connect-src policy' : 'No connect-src restrictions'}</p>
+            
+            <h4>✅ All tests passed!</h4>
+            <p>Your backend is working correctly. The 500 error might be due to:</p>
+            <ul>
+              <li>Missing or invalid Claude API key</li>
+              <li>Large payload size causing timeouts</li>
+              <li>Claude API rate limiting</li>
+              <li>Specific DOM content causing processing errors</li>
+            </ul>
+            
+            <button class="astra-btn" onclick="window.astraExtension.tryMockAnalysis()">Try Mock Analysis</button>
+            <button class="astra-btn" onclick="window.astraExtension.runAIAnalysis()">Retry AI Analysis</button>
+          </div>
+        </div>
+      `;
+      
     } catch (error) {
-      console.error('AI Analysis Error:', error);
-      resultsDiv.innerHTML = '<div class="astra-error">Error: ' + error.message + '</div>';
+      console.error('Connection test failed:', error);
+      
+      // Analyze the error to provide specific guidance
+      let errorAnalysis = '';
+      let blockingType = 'Unknown';
+      
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        blockingType = 'Network/CORS Blocking';
+        errorAnalysis = `
+          <h4>🚫 Network/CORS Blocking Detected</h4>
+          <p>The website or network is blocking external API requests.</p>
+          <h5>Common Causes:</h5>
+          <ul>
+            <li><strong>Corporate Firewall:</strong> Your company network might block external APIs</li>
+            <li><strong>Website CSP:</strong> The current website has strict Content Security Policy</li>
+            <li><strong>Ad Blocker:</strong> Browser extensions might be blocking the request</li>
+            <li><strong>HTTPS/HTTP Mixed Content:</strong> Security restrictions on mixed protocols</li>
+          </ul>
+        `;
+      } else if (error.message.includes('500')) {
+        blockingType = 'Backend Server Error';
+        errorAnalysis = `
+          <h4>🚨 Backend Server Error</h4>
+          <p>The backend API is reachable but failing to process requests.</p>
+          <h5>Likely Causes:</h5>
+          <ul>
+            <li><strong>Missing Claude API Key:</strong> Check Vercel environment variables</li>
+            <li><strong>Claude API Issues:</strong> The AI service might be down</li>
+            <li><strong>Payload Processing Error:</strong> The request data is causing backend errors</li>
+            <li><strong>Memory/Timeout Limits:</strong> Request is too large or taking too long</li>
+          </ul>
+        `;
+      } else if (error.message.includes('403') || error.message.includes('blocked')) {
+        blockingType = 'Website Security Blocking';
+        errorAnalysis = `
+          <h4>🛡️ Website Security Blocking</h4>
+          <p>The current website (${window.location.hostname}) is blocking external requests.</p>
+          <h5>What's Happening:</h5>
+          <ul>
+            <li><strong>CSP Policy:</strong> Content Security Policy restrictions</li>
+            <li><strong>CORS Headers:</strong> Cross-Origin Resource Sharing blocked</li>
+            <li><strong>Security Headers:</strong> X-Frame-Options or similar restrictions</li>
+            <li><strong>Website Firewall:</strong> The site's security system is blocking requests</li>
+          </ul>
+        `;
+      }
+      
+      resultsDiv.innerHTML = `
+        <div class="astra-error">
+          <h3>❌ Connection Test Failed</h3>
+          <p><strong>Error Type:</strong> ${blockingType}</p>
+          <p><strong>Error Message:</strong> ${error.message}</p>
+          
+          ${errorAnalysis}
+          
+          <h5>🔧 Troubleshooting Steps:</h5>
+          <ol>
+            <li><strong>Try a different website:</strong> Test on a simple site like <code>example.com</code></li>
+            <li><strong>Check your network:</strong> Try on a different network (mobile hotspot)</li>
+            <li><strong>Disable ad blockers:</strong> Temporarily disable other extensions</li>
+            <li><strong>Test in incognito mode:</strong> Open the extension in private browsing</li>
+            <li><strong>Check backend logs:</strong> View Vercel function logs for errors</li>
+          </ol>
+          
+          <div class="astra-debug-actions">
+            <button class="astra-btn" onclick="window.astraExtension.tryMockAnalysis()">Try Mock Analysis</button>
+            <button class="astra-btn" onclick="window.astraExtension.testOnDifferentSite()">Test on Different Site</button>
+            <button class="astra-btn" onclick="window.astraExtension.viewDebugInfo()">View Debug Info</button>
+          </div>
+        </div>
+      `;
     }
+  }
+
+  testOnDifferentSite() {
+    alert(`
+🔍 Testing on Different Sites
+
+Try opening these sites and testing the extension:
+
+✅ Simple sites (least likely to block):
+• https://example.com
+• https://httpbin.org
+• https://jsonplaceholder.typicode.com
+
+⚠️ Medium security sites:
+• https://github.com
+• https://stackoverflow.com
+
+❌ High security sites (likely to block):
+• Banking websites
+• Corporate intranets
+• Government sites
+
+Current site: ${window.location.hostname}
+Security level: ${this.assessSiteSecurity()}
+    `);
+  }
+
+  assessSiteSecurity() {
+    const hostname = window.location.hostname;
+    
+    // Check for high-security domains
+    if (hostname.includes('bank') || hostname.includes('gov') || hostname.includes('secure')) {
+      return 'HIGH (likely to block external requests)';
+    }
+    
+    // Check for corporate domains
+    if (hostname.includes('corp') || hostname.includes('intranet') || hostname.includes('internal')) {
+      return 'HIGH (corporate network restrictions)';
+    }
+    
+    // Check for CDN or simple sites
+    if (hostname.includes('example') || hostname.includes('test') || hostname.includes('demo')) {
+      return 'LOW (unlikely to block)';
+    }
+    
+    // Check HTTPS
+    if (window.location.protocol === 'https:') {
+      return 'MEDIUM (HTTPS site with potential CSP)';
+    }
+    
+    return 'MEDIUM (standard website)';
+  }
+
+  viewDebugInfo() {
+    const debugInfo = {
+      currentUrl: window.location.href,
+      hostname: window.location.hostname,
+      protocol: window.location.protocol,
+      userAgent: navigator.userAgent,
+      backendUrl: this.backendUrl,
+      timestamp: new Date().toISOString(),
+      cspPolicy: document.querySelector('meta[http-equiv="Content-Security-Policy"]')?.content || 'None',
+      securityLevel: this.assessSiteSecurity(),
+      domStylesCount: this.domAnalysis ? this.domAnalysis.length : 0,
+      hasAccessibilityResults: !!this.axeResults,
+      hasScreenshot: !!this.screenshot
+    };
+    
+    console.log('🔍 Debug Information:', debugInfo);
+    
+    // Copy to clipboard
+    navigator.clipboard.writeText(JSON.stringify(debugInfo, null, 2)).then(() => {
+      alert('Debug information copied to clipboard!\n\nShare this with support if needed.');
+    }).catch(() => {
+      alert('Debug Information:\n\n' + JSON.stringify(debugInfo, null, 2));
+    });
+  }
+
+  tryMockAnalysis() {
+    console.log('Displaying mock analysis...');
+    
+    const mockResult = {
+      success: true,
+      analysis: `
+        <h4>🤖 Mock AI Analysis</h4>
+        <p><strong>Website:</strong> ${window.location.href}</p>
+        
+        <h5>Overall Assessment:</h5>
+        <p>Your website structure looks good! Here are some AI-powered observations:</p>
+        
+        <h5>Design Quality:</h5>
+        <ul>
+          <li>✅ Typography appears consistent across elements</li>
+          <li>✅ Color usage follows a coherent scheme</li>
+          <li>⚠️ Some spacing inconsistencies detected</li>
+          <li>✅ Interactive elements are properly styled</li>
+        </ul>
+        
+        <h5>Accessibility:</h5>
+        <ul>
+          <li>✅ Good semantic structure with proper headings</li>
+          <li>⚠️ Some images may need better alt text</li>
+          <li>✅ Color contrast appears adequate</li>
+          <li>⚠️ Consider adding more ARIA labels</li>
+        </ul>
+        
+        <h5>Recommendations:</h5>
+        <ol>
+          <li><strong>Standardize spacing:</strong> Use consistent margin/padding tokens</li>
+          <li><strong>Enhance accessibility:</strong> Add descriptive alt text to all images</li>
+          <li><strong>Improve forms:</strong> Ensure all form inputs have proper labels</li>
+          <li><strong>Mobile optimization:</strong> Test responsive design on various screen sizes</li>
+        </ol>
+        
+        <div style="background: #f0f9ff; padding: 12px; border-radius: 6px; margin-top: 16px;">
+          <p><strong>💡 Note:</strong> This is a mock analysis. To get real AI insights, configure your Claude API key in the backend.</p>
+        </div>
+      `,
+      timestamp: new Date().toISOString()
+    };
+    
+    this.displayAIResults(mockResult);
+  }
+
+  viewPayload() {
+    const analysisData = {
+      domStyles: this.domAnalysis || this.extractDOMStyles(),
+      accessibilityResults: this.axeResults,
+      url: window.location.href,
+      screenshot: this.screenshot ? this.screenshot.substring(0, 100) + '...' : null
+    };
+    
+    const payloadSize = JSON.stringify(analysisData).length;
+    
+    console.log('Request payload:', analysisData);
+    console.log('Payload size:', Math.round(payloadSize / 1024) + 'KB');
+    
+    const payloadWindow = window.open('', '_blank', 'width=800,height=600');
+    payloadWindow.document.write(`
+      <html>
+        <head><title>Astra - Request Payload Debug</title></head>
+        <body style="font-family: monospace; padding: 20px;">
+          <h2>Request Payload Debug</h2>
+          <p><strong>Size:</strong> ${Math.round(payloadSize / 1024)}KB</p>
+          <p><strong>URL:</strong> ${this.backendUrl}/api/ai-analysis</p>
+          <pre style="background: #f5f5f5; padding: 10px; overflow: auto;">${JSON.stringify(analysisData, null, 2)}</pre>
+        </body>
+      </html>
+    `);
   }
 
   async analyzeDesign() {
