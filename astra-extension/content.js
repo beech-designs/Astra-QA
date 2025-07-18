@@ -227,58 +227,178 @@ class AstraExtension {
     overlayImg.style.display = overlayImg.style.display === 'none' ? 'block' : 'none';
   }
 
-  // DOM Style Extraction
-  extractDOMStyles() {
-    const elements = document.querySelectorAll('*');
-    const styleData = [];
 
-    elements.forEach(element => {
-      const computed = window.getComputedStyle(element);
-      const rect = element.getBoundingClientRect();
-      
-      // Only extract styles for visible elements
-      if (rect.width > 0 && rect.height > 0) {
-        styleData.push({
-          tagName: element.tagName,
-          id: element.id,
-          className: element.className,
-          position: {
-            top: rect.top,
-            left: rect.left,
-            width: rect.width,
-            height: rect.height
-          },
-          typography: {
-            fontSize: computed.fontSize,
-            fontWeight: computed.fontWeight,
-            fontFamily: computed.fontFamily,
-            lineHeight: computed.lineHeight,
-            color: computed.color
-          },
-          spacing: {
-            margin: computed.margin,
-            padding: computed.padding,
-            gap: computed.gap
-          },
-          layout: {
-            display: computed.display,
-            position: computed.position,
-            flexDirection: computed.flexDirection,
-            justifyContent: computed.justifyContent,
-            alignItems: computed.alignItems
-          },
-          visuals: {
-            backgroundColor: computed.backgroundColor,
-            border: computed.border,
-            borderRadius: computed.borderRadius,
-            boxShadow: computed.boxShadow
-          }
-        });
+extractDOMStyles() {
+  const elements = document.querySelectorAll('*');
+  const styleData = [];
+  let count = 0;
+  const MAX_ELEMENTS = 200; // Limit to 200 most important elements
+
+  // Priority selectors - these are most important for design analysis
+  const prioritySelectors = [
+    'h1, h2, h3, h4, h5, h6',           // Headings
+    'p, span, div',                      // Text elements
+    'button, a, input',                  // Interactive elements
+    'header, nav, main, section, footer', // Semantic elements
+    '[class*="btn"], [class*="button"]', // Button-like elements
+    '[class*="card"], [class*="modal"]', // Common components
+    '[id], [class]'                      // Elements with specific styling
+  ];
+
+  // Get priority elements first
+  const priorityElements = new Set();
+  prioritySelectors.forEach(selector => {
+    try {
+      document.querySelectorAll(selector).forEach(el => {
+        if (priorityElements.size < MAX_ELEMENTS) {
+          priorityElements.add(el);
+        }
+      });
+    } catch (e) {
+      // Skip invalid selectors
+    }
+  });
+
+  // Convert Set to Array and add remaining elements if needed
+  const elementsToProcess = Array.from(priorityElements);
+  
+  // Fill remaining slots with other visible elements
+  elements.forEach(element => {
+    if (elementsToProcess.length >= MAX_ELEMENTS) return;
+    
+    const rect = element.getBoundingClientRect();
+    if (rect.width > 0 && rect.height > 0 && !priorityElements.has(element)) {
+      elementsToProcess.push(element);
+    }
+  });
+
+  // Extract styles for selected elements only
+  elementsToProcess.slice(0, MAX_ELEMENTS).forEach(element => {
+    const computed = window.getComputedStyle(element);
+    const rect = element.getBoundingClientRect();
+    
+    // Only extract essential styles
+    styleData.push({
+      tag: element.tagName.toLowerCase(),
+      id: element.id || null,
+      className: element.className ? element.className.substring(0, 100) : null, // Limit class names
+      position: {
+        top: Math.round(rect.top),
+        left: Math.round(rect.left),
+        width: Math.round(rect.width),
+        height: Math.round(rect.height)
+      },
+      typography: {
+        fontSize: computed.fontSize,
+        fontWeight: computed.fontWeight,
+        fontFamily: computed.fontFamily.substring(0, 50), // Limit font family string
+        lineHeight: computed.lineHeight,
+        color: computed.color
+      },
+      spacing: {
+        margin: computed.margin,
+        padding: computed.padding
+      },
+      layout: {
+        display: computed.display,
+        position: computed.position
+      },
+      visuals: {
+        backgroundColor: computed.backgroundColor,
+        borderRadius: computed.borderRadius
       }
     });
+  });
 
-    return styleData;
+  console.log(`Extracted styles for ${styleData.length} elements (limited for API)`);
+  return styleData;
+}
+
+// Updated runAIAnalysis method with payload size check
+async runAIAnalysis() {
+  const resultsDiv = document.getElementById('analysis-results');
+  resultsDiv.innerHTML = '<div class="astra-loading">Generating AI analysis...</div>';
+
+  try {
+    const analysisData = {
+      domStyles: this.domAnalysis || this.extractDOMStyles(),
+      accessibilityResults: this.axeResults,
+      url: window.location.href,
+      screenshot: this.screenshot ? this.screenshot.substring(0, 10000) : null // Limit screenshot size
+    };
+
+    // Check payload size (approximate)
+    const payloadSize = JSON.stringify(analysisData).length;
+    console.log(`Payload size: ${Math.round(payloadSize / 1024)}KB`);
+    
+    if (payloadSize > 1000000) { // ~1MB limit
+      // Further reduce data if still too large
+      analysisData.domStyles = analysisData.domStyles.slice(0, 100);
+      analysisData.screenshot = null; // Remove screenshot if payload too large
+      console.log('Reduced payload size due to size limits');
+    }
+
+    const response = await fetch(`${this.backendUrl}/api/ai-analysis`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(analysisData)
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    this.displayAIResults(result);
+  } catch (error) {
+    console.error('AI Analysis Error:', error);
+    resultsDiv.innerHTML = `<div class="astra-error">Error: ${error.message}</div>`;
   }
+}
+
+// Updated analyzeDesign method with size limits
+async analyzeDesign() {
+  const resultsDiv = document.getElementById('design-results');
+  resultsDiv.innerHTML = '<div class="astra-loading">Analyzing design...</div>';
+
+  try {
+    // Extract DOM styles with limits
+    this.domAnalysis = this.extractDOMStyles();
+    
+    const analysisData = {
+      domStyles: this.domAnalysis,
+      designScreenshot: this.screenshot ? this.screenshot.substring(0, 50000) : null, // Limit screenshot
+      url: window.location.href
+    };
+
+    // Check and reduce payload if needed
+    const payloadSize = JSON.stringify(analysisData).length;
+    if (payloadSize > 800000) { // ~800KB limit for design analysis
+      analysisData.domStyles = analysisData.domStyles.slice(0, 150);
+      analysisData.designScreenshot = null;
+    }
+
+    const response = await fetch(`${this.backendUrl}/api/analyze-design`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(analysisData)
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    this.displayDesignResults(result);
+  } catch (error) {
+    console.error('Design Analysis Error:', error);
+    resultsDiv.innerHTML = `<div class="astra-error">Error: ${error.message}</div>`;
+  }
+}
 
   // Accessibility Audit
   async runAccessibilityAudit() {
