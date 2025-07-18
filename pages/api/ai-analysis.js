@@ -19,10 +19,10 @@ export default async function handler(req, res) {
     const { domStyles, accessibilityResults, url, screenshot } = req.body;
 
     // TODO: Replace with actual Claude API key
-    const CLAUDE_API_KEY = process.env.CLAUDE_API_KEY;
+    const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
     
-    if (!CLAUDE_API_KEY) {
-      return res.status(500).json({ error: 'Claude API key not configured' });
+    if (!ANTHROPIC_API_KEY) {
+      return res.status(500).json({ error: 'Anthropic API key not configured' });
     }
 
     // Prepare comprehensive analysis prompt
@@ -84,7 +84,7 @@ Please provide actionable, specific recommendations with implementation guidance
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': CLAUDE_API_KEY,
+        'x-api-key': ANTHROPIC_API_KEY,
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({

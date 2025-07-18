@@ -112,7 +112,7 @@ vercel
 In your Vercel dashboard:
 1. Go to your project settings
 2. Navigate to "Environment Variables"
-3. Add: `CLAUDE_API_KEY` with your Claude API key
+3. Add: `ANTHROPIC_API_KEY` with your Claude API key
 
 **Getting a Claude API Key:**
 1. Visit https://console.anthropic.com/
@@ -207,7 +207,7 @@ this.backendUrl = 'https://your-astra-backend.vercel.app';
 ### Environment Variables
 ```bash
 # Required in Vercel dashboard
-CLAUDE_API_KEY=your_claude_api_key_here
+ANTHROPIC_API_KEY=your_anthropic_api_key_here
 ```
 
 ### Extension Permissions
