@@ -1,10 +1,13 @@
 // background.js - Chrome Extension Background Script
-// This script runs in the background and can make API calls that bypass client-side blocking
+// Handles both API communication and extension icon/keyboard interactions
 
 class AstraBackgroundService {
   constructor() {
-    this.backendUrl = 'https://astra-qa.vercel.app';
+    this.backendUrl = 'https://astra-qa.vercel.app'; // Update with your actual backend URL
     this.setupMessageListener();
+    this.setupIconClickHandler();
+    this.setupKeyboardShortcuts();
+    this.setupInstallationHandler();
   }
 
   setupMessageListener() {
@@ -30,6 +33,118 @@ class AstraBackgroundService {
     });
   }
 
+  setupIconClickHandler() {
+    // Handle extension icon clicks - directly toggle overlay
+    chrome.action.onClicked.addListener(async (tab) => {
+      await this.toggleOverlay(tab);
+    });
+  }
+
+  setupKeyboardShortcuts() {
+    // Handle keyboard shortcut (Alt+A)
+    chrome.commands.onCommand.addListener(async (command) => {
+      if (command === 'toggle-overlay') {
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        await this.toggleOverlay(tab);
+      }
+    });
+  }
+
+  setupInstallationHandler() {
+    // Handle extension installation
+    chrome.runtime.onInstalled.addListener((details) => {
+      if (details.reason === 'install') {
+        chrome.notifications.create({
+          type: 'basic',
+          iconUrl: 'icons/icon48.png',
+          title: '🔍 Astra Installed!',
+          message: 'Click the extension icon or press Alt+A to analyze any webpage.',
+          silent: true
+        });
+      }
+    });
+  }
+
+  async toggleOverlay(tab) {
+    // Check if the tab URL is restricted
+    if (this.isRestrictedUrl(tab.url)) {
+      chrome.notifications.create({
+        type: 'basic',
+        iconUrl: 'icons/icon48.png',
+        title: 'Astra - Cannot Run Here',
+        message: 'Astra cannot run on this page. Please try on a regular website.',
+        silent: true
+      });
+      return;
+    }
+
+    try {
+      // Try to send message to existing content script
+      await chrome.tabs.sendMessage(tab.id, { action: 'toggle' });
+    } catch (error) {
+      // Content script not loaded, inject it
+      try {
+        console.log('Background: Injecting content scripts...');
+        
+        // Inject JavaScript files
+        await chrome.scripting.executeScript({
+          target: { tabId: tab.id },
+          files: ['axe.min.js', 'content.js']
+        });
+        
+        // Inject CSS
+        await chrome.scripting.insertCSS({
+          target: { tabId: tab.id },
+          files: ['overlay.css']
+        });
+        
+        // Wait for script initialization then toggle
+        setTimeout(async () => {
+          try {
+            await chrome.tabs.sendMessage(tab.id, { action: 'toggle' });
+          } catch (e) {
+            console.error('Background: Failed to toggle after injection:', e);
+            chrome.notifications.create({
+              type: 'basic',
+              iconUrl: 'icons/icon48.png',
+              title: 'Astra - Error',
+              message: 'Failed to initialize Astra. Please refresh and try again.',
+              silent: true
+            });
+          }
+        }, 100);
+        
+      } catch (injectionError) {
+        console.error('Background: Failed to inject content script:', injectionError);
+        chrome.notifications.create({
+          type: 'basic',
+          iconUrl: 'icons/icon48.png',
+          title: 'Astra - Injection Error',
+          message: 'Failed to load Astra. Please refresh the page and try again.',
+          silent: true
+        });
+      }
+    }
+  }
+
+  // Check if URL is restricted (cannot inject content scripts)
+  isRestrictedUrl(url) {
+    const restrictedPrefixes = [
+      'chrome://',
+      'chrome-extension://',
+      'moz-extension://',
+      'edge://',
+      'about:',
+      'data:',
+      'file://',
+      'javascript:',
+      'view-source:'
+    ];
+    
+    return restrictedPrefixes.some(prefix => url.startsWith(prefix));
+  }
+
+  // API Methods (preserving existing functionality)
   async healthCheck() {
     try {
       console.log('Background: Performing health check...');
@@ -135,4 +250,4 @@ class AstraBackgroundService {
 
 // Initialize the background service
 const astraBackgroundService = new AstraBackgroundService();
-console.log('Astra background service initialized');
+console.log('Astra background service initialized with direct overlay toggle');
