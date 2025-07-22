@@ -1,216 +1,108 @@
-// background.js - Chrome Extension Background Script
-// Handles both API communication and extension icon/keyboard interactions
+// background.js - Service Worker for Chrome Extension
+// Handles screenshot capture fallback and keyboard shortcuts
 
-class AstraBackgroundService {
-  constructor() {
-    this.backendUrl = 'https://astra-qa.vercel.app'; // Update with your actual backend URL
-    this.setupMessageListener();
-    this.setupIconClickHandler();
-    this.setupKeyboardShortcuts();
-    this.setupInstallationHandler();
-  }
+console.log('Astra background service worker loaded');
 
-  setupMessageListener() {
-    chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-      console.log('Background: Received message:', request);
-      
-      // Handle different API calls
-      switch (request.action) {
-        case 'healthCheck':
-          this.healthCheck().then(sendResponse);
+// Handle keyboard shortcuts
+chrome.commands.onCommand.addListener((command) => {
+  console.log('Command received:', command);
+  
+  chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+    if (tabs[0]) {
+      switch (command) {
+        case 'toggle-astra':
+          chrome.tabs.sendMessage(tabs[0].id, {action: 'toggle-astra'});
           break;
-        case 'aiAnalysis':
-          this.aiAnalysis(request.data).then(sendResponse);
+        case 'capture-screenshot':
+          chrome.tabs.sendMessage(tabs[0].id, {action: 'capture-screenshot'});
           break;
-        default:
-          sendResponse({ error: 'Unknown action: ' + request.action });
       }
-      
-      return true; // Keep message channel open for async response
-    });
-  }
+    }
+  });
+});
 
-  setupIconClickHandler() {
-    // Handle extension icon clicks - directly toggle overlay
-    chrome.action.onClicked.addListener(async (tab) => {
-      await this.toggleOverlay(tab);
-    });
-  }
-
-  setupKeyboardShortcuts() {
-    // Handle keyboard shortcut (Alt+A)
-    chrome.commands.onCommand.addListener(async (command) => {
-      if (command === 'toggle-overlay') {
-        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-        await this.toggleOverlay(tab);
-      }
-    });
-  }
-
-  setupInstallationHandler() {
-    // Handle extension installation
-    chrome.runtime.onInstalled.addListener((details) => {
-      if (details.reason === 'install') {
-        chrome.notifications.create({
-          type: 'basic',
-          iconUrl: 'icons/icon48.png',
-          title: '🔍 Astra Installed!',
-          message: 'Click the extension icon or press Alt+A to analyze any webpage.',
-          silent: true
-        });
-      }
-    });
-  }
-
-  async toggleOverlay(tab) {
-    // Check if the tab URL is restricted
-    if (this.isRestrictedUrl(tab.url)) {
-      chrome.notifications.create({
-        type: 'basic',
-        iconUrl: 'icons/icon48.png',
-        title: 'Astra - Cannot Run Here',
-        message: 'Astra cannot run on this page. Please try on a regular website.',
-        silent: true
+// Handle messages from content script
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  console.log('Background received message:', request);
+  
+  if (request.action === 'captureTab') {
+    handleScreenshotCapture(sender.tab.id)
+      .then(screenshot => {
+        sendResponse({success: true, screenshot: screenshot});
+      })
+      .catch(error => {
+        console.error('Screenshot capture failed:', error);
+        sendResponse({success: false, error: error.message});
       });
-      return;
-    }
-
-    try {
-      // Try to send message to existing content script
-      await chrome.tabs.sendMessage(tab.id, { action: 'toggle' });
-    } catch (error) {
-      // Content script not loaded, inject it
-      try {
-        console.log('Background: Injecting content scripts...');
-        
-        // Inject JavaScript files
-        await chrome.scripting.executeScript({
-          target: { tabId: tab.id },
-          files: ['axe.min.js', 'content.js']
-        });
-        
-        // Inject CSS
-        await chrome.scripting.insertCSS({
-          target: { tabId: tab.id },
-          files: ['overlay.css']
-        });
-        
-        // Wait for script initialization then toggle
-        setTimeout(async () => {
-          try {
-            await chrome.tabs.sendMessage(tab.id, { action: 'toggle' });
-          } catch (e) {
-            console.error('Background: Failed to toggle after injection:', e);
-            chrome.notifications.create({
-              type: 'basic',
-              iconUrl: 'icons/icon48.png',
-              title: 'Astra - Error',
-              message: 'Failed to initialize Astra. Please refresh and try again.',
-              silent: true
-            });
-          }
-        }, 100);
-        
-      } catch (injectionError) {
-        console.error('Background: Failed to inject content script:', injectionError);
-        chrome.notifications.create({
-          type: 'basic',
-          iconUrl: 'icons/icon48.png',
-          title: 'Astra - Injection Error',
-          message: 'Failed to load Astra. Please refresh the page and try again.',
-          silent: true
-        });
-      }
-    }
-  }
-
-  isRestrictedUrl(url) {
-    const restrictedProtocols = ['chrome://', 'chrome-extension://', 'moz-extension://', 'edge://', 'about:', 'data:', 'file://'];
-    const restrictedDomains = ['chrome.google.com', 'addons.mozilla.org', 'microsoftedge.microsoft.com'];
     
-    // Check protocols
-    for (const protocol of restrictedProtocols) {
-      if (url.startsWith(protocol)) {
-        return true;
-      }
-    }
+    // Return true to indicate async response
+    return true;
+  }
+});
+
+// Capture screenshot using Chrome tabs API
+async function handleScreenshotCapture(tabId) {
+  try {
+    console.log('Capturing screenshot for tab:', tabId);
     
-    // Check domains
-    try {
-      const domain = new URL(url).hostname;
-      return restrictedDomains.some(restricted => domain.includes(restricted));
-    } catch (e) {
-      return true; // If URL is malformed, consider it restricted
-    }
-  }
-
-  async healthCheck() {
-    try {
-      console.log('Background: Performing health check...');
-      
-      const response = await fetch(this.backendUrl + '/api/health', {
-        method: 'GET',
-        headers: {
-          'User-Agent': 'Astra-Extension/1.0.0',
-          'X-Extension-Request': 'true'
-        }
-      });
-
-      console.log('Background: Health check response status:', response.status);
-
-      if (!response.ok) {
-        throw new Error('HTTP ' + response.status + ': ' + response.statusText);
-      }
-
-      const result = await response.json();
-      console.log('Background: Health check successful:', result);
-      
-      return { success: true, data: result };
-    } catch (error) {
-      console.error('Background: Health check failed:', error);
-      return { success: false, error: error.message };
-    }
-  }
-
-  async aiAnalysis(data) {
-    try {
-      console.log('Background: Starting AI analysis...');
-      console.log('Background: Payload size:', Math.round(JSON.stringify(data).length / 1024) + 'KB');
-      
-      const response = await fetch(this.backendUrl + '/api/ai-analysis', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'User-Agent': 'Astra-Extension/1.0.0',
-          'X-Extension-Request': 'true'
-        },
-        body: JSON.stringify(data)
-      });
-
-      console.log('Background: AI analysis response status:', response.status);
-
-      if (!response.ok) {
-        let errorDetails = 'Unknown error';
-        try {
-          const errorBody = await response.json();
-          errorDetails = errorBody.error || errorBody.message || errorBody.details || 'Server error';
-        } catch (e) {
-          errorDetails = await response.text();
-        }
-        throw new Error('HTTP ' + response.status + ': ' + errorDetails);
-      }
-
-      const result = await response.json();
-      console.log('Background: AI analysis successful');
-      
-      return { success: true, data: result };
-    } catch (error) {
-      console.error('Background: AI analysis failed:', error);
-      return { success: false, error: error.message };
-    }
+    // Ensure the tab is active for screenshot
+    await chrome.tabs.update(tabId, {active: true});
+    
+    // Small delay to ensure tab is ready
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    // Capture the tab
+    const dataUrl = await chrome.tabs.captureVisibleTab(null, {
+      format: 'jpeg',
+      quality: 80
+    });
+    
+    console.log('Screenshot captured successfully via Chrome API');
+    return dataUrl;
+    
+  } catch (error) {
+    console.error('Chrome tabs screenshot failed:', error);
+    throw error;
   }
 }
 
-// Initialize the background service
-const astraBackgroundService = new AstraBackgroundService();
-console.log('Astra background service initialized');
+// Handle extension installation
+chrome.runtime.onInstalled.addListener((details) => {
+  console.log('Astra extension installed:', details);
+  
+  if (details.reason === 'install') {
+    // Open welcome page or show notification
+    chrome.tabs.create({
+      url: 'https://your-astra-backend.vercel.app'
+    });
+  }
+});
+
+// Handle tab updates to inject content script if needed
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  if (changeInfo.status === 'complete' && tab.url) {
+    // Skip chrome:// pages and other restricted URLs
+    if (!tab.url.startsWith('chrome://') && 
+        !tab.url.startsWith('chrome-extension://') && 
+        !tab.url.startsWith('moz-extension://')) {
+      
+      // Ensure content script is injected
+      chrome.scripting.executeScript({
+        target: {tabId: tabId},
+        files: ['content.js']
+      }).catch(err => {
+        console.log('Content script already injected or injection failed:', err.message);
+      });
+    }
+  }
+});
+
+// Cleanup on extension suspend
+chrome.runtime.onSuspend.addListener(() => {
+  console.log('Astra background service worker suspended');
+});
+
+// Handle extension errors
+chrome.runtime.onStartup.addListener(() => {
+  console.log('Astra extension started');
+});

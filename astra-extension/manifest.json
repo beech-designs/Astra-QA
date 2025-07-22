@@ -1,50 +1,80 @@
 {
   "manifest_version": 3,
   "name": "Astra - AI Design & Accessibility Validator",
-  "version": "1.0.0",
-  "description": "Intelligently analyze web designs and accessibility using AI-powered insights",
+  "version": "1.1.0",
+  "description": "AI-powered design consistency and accessibility validation with visual analysis",
+  
   "permissions": [
     "activeTab",
     "storage",
     "scripting",
-    "notifications"
+    "notifications",
+    "tabs"
   ],
+  
   "host_permissions": [
     "http://*/*",
     "https://*/*"
   ],
+  
   "background": {
     "service_worker": "background.js"
   },
+  
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["axe.min.js", "content.js"],
+      "js": [
+        "axe.min.js",
+        "html2canvas.min.js",
+        "content.js"
+      ],
       "css": ["overlay.css"],
       "run_at": "document_end"
     }
   ],
+  
   "action": {
     "default_title": "Toggle Astra Panel"
   },
+  
   "icons": {
     "16": "icons/icon16.png",
     "32": "icons/icon32.png", 
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
+  
+  "commands": {
+    "toggle-astra": {
+      "suggested_key": {
+        "default": "Alt+A",
+        "mac": "Alt+A"
+      },
+      "description": "Toggle Astra overlay"
+    },
+    "capture-screenshot": {
+      "suggested_key": {
+        "default": "Alt+S",
+        "mac": "Alt+S"
+      },
+      "description": "Capture page screenshot"
+    }
+  },
+  
   "web_accessible_resources": [
     {
-      "resources": ["icons/*"],
+      "resources": [
+        "icons/*",
+        "axe.min.js",
+        "html2canvas.min.js",
+        "overlay.css"
+      ],
       "matches": ["<all_urls>"]
     }
   ],
-  "commands": {
-    "toggle-overlay": {
-      "suggested_key": {
-        "default": "Alt+A"
-      },
-      "description": "Toggle Astra overlay panel"
-    }
+
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self';"
   }
 }
