@@ -73,7 +73,7 @@ chrome.runtime.onInstalled.addListener((details) => {
   if (details.reason === 'install') {
     // Open welcome page or show notification
     chrome.tabs.create({
-      url: 'https://your-astra-backend.vercel.app'
+      url: 'https://astra-qa.vercel.app'
     });
   }
 });
