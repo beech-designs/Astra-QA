@@ -22,9 +22,6 @@ class AstraBackgroundService {
         case 'aiAnalysis':
           this.aiAnalysis(request.data).then(sendResponse);
           break;
-        case 'designAnalysis':
-          this.designAnalysis(request.data).then(sendResponse);
-          break;
         default:
           sendResponse({ error: 'Unknown action: ' + request.action });
       }
@@ -127,24 +124,26 @@ class AstraBackgroundService {
     }
   }
 
-  // Check if URL is restricted (cannot inject content scripts)
   isRestrictedUrl(url) {
-    const restrictedPrefixes = [
-      'chrome://',
-      'chrome-extension://',
-      'moz-extension://',
-      'edge://',
-      'about:',
-      'data:',
-      'file://',
-      'javascript:',
-      'view-source:'
-    ];
+    const restrictedProtocols = ['chrome://', 'chrome-extension://', 'moz-extension://', 'edge://', 'about:', 'data:', 'file://'];
+    const restrictedDomains = ['chrome.google.com', 'addons.mozilla.org', 'microsoftedge.microsoft.com'];
     
-    return restrictedPrefixes.some(prefix => url.startsWith(prefix));
+    // Check protocols
+    for (const protocol of restrictedProtocols) {
+      if (url.startsWith(protocol)) {
+        return true;
+      }
+    }
+    
+    // Check domains
+    try {
+      const domain = new URL(url).hostname;
+      return restrictedDomains.some(restricted => domain.includes(restricted));
+    } catch (e) {
+      return true; // If URL is malformed, consider it restricted
+    }
   }
 
-  // API Methods (preserving existing functionality)
   async healthCheck() {
     try {
       console.log('Background: Performing health check...');
@@ -152,13 +151,15 @@ class AstraBackgroundService {
       const response = await fetch(this.backendUrl + '/api/health', {
         method: 'GET',
         headers: {
-          'Content-Type': 'application/json',
-          'User-Agent': 'Astra-Extension/1.0.0'
+          'User-Agent': 'Astra-Extension/1.0.0',
+          'X-Extension-Request': 'true'
         }
       });
 
+      console.log('Background: Health check response status:', response.status);
+
       if (!response.ok) {
-        throw new Error('Health check failed: ' + response.status);
+        throw new Error('HTTP ' + response.status + ': ' + response.statusText);
       }
 
       const result = await response.json();
@@ -208,46 +209,8 @@ class AstraBackgroundService {
       return { success: false, error: error.message };
     }
   }
-
-  async designAnalysis(data) {
-    try {
-      console.log('Background: Starting design analysis...');
-      console.log('Background: Payload size:', Math.round(JSON.stringify(data).length / 1024) + 'KB');
-      
-      const response = await fetch(this.backendUrl + '/api/analyze-design', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'User-Agent': 'Astra-Extension/1.0.0',
-          'X-Extension-Request': 'true'
-        },
-        body: JSON.stringify(data)
-      });
-
-      console.log('Background: Design analysis response status:', response.status);
-
-      if (!response.ok) {
-        let errorDetails = 'Unknown error';
-        try {
-          const errorBody = await response.json();
-          errorDetails = errorBody.error || errorBody.message || errorBody.details || 'Server error';
-        } catch (e) {
-          errorDetails = await response.text();
-        }
-        throw new Error('HTTP ' + response.status + ': ' + errorDetails);
-      }
-
-      const result = await response.json();
-      console.log('Background: Design analysis successful');
-      
-      return { success: true, data: result };
-    } catch (error) {
-      console.error('Background: Design analysis failed:', error);
-      return { success: false, error: error.message };
-    }
-  }
 }
 
 // Initialize the background service
 const astraBackgroundService = new AstraBackgroundService();
-console.log('Astra background service initialized with direct overlay toggle');
+console.log('Astra background service initialized');

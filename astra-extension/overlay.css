@@ -1,45 +1,58 @@
-/* Astra Overlay Styles */
+/* Astra Extension Overlay Styles */
+/* Comprehensive styling for the overlay interface */
+
 #astra-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 999999;
+  pointer-events: none;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  transition: opacity 0.3s ease;
+}
+
+#astra-overlay.astra-hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.astra-panel {
   position: fixed;
   top: 20px;
   right: 20px;
   width: 400px;
   max-height: 80vh;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: white;
   border-radius: 12px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  z-index: 2147483647;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-  font-size: 14px;
-  line-height: 1.5;
-  color: #374151;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1), 0 10px 20px rgba(0, 0, 0, 0.1);
+  pointer-events: all;
   overflow: hidden;
-  transform: translateX(0);
-  transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+  border: 1px solid #e5e7eb;
+  animation: astra-slide-in 0.3s ease-out;
 }
 
-#astra-overlay.astra-hidden {
-  transform: translateX(100%);
-  opacity: 0;
-  pointer-events: none;
-}
-
-.astra-panel {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  max-height: 80vh;
+@keyframes astra-slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 .astra-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 16px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border-radius: 12px 12px 0 0;
 }
 
 .astra-title {
@@ -51,27 +64,27 @@
 }
 
 .astra-icon {
-  font-size: 18px;
+  font-size: 20px;
 }
 
 .astra-close {
-  background: none;
+  background: rgba(255, 255, 255, 0.2);
   border: none;
   color: white;
-  font-size: 24px;
-  cursor: pointer;
-  padding: 0;
   width: 32px;
   height: 32px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: bold;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 6px;
   transition: background-color 0.2s ease;
 }
 
 .astra-close:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .astra-tabs {
@@ -83,10 +96,9 @@
 .astra-tab {
   flex: 1;
   padding: 12px 16px;
-  background: none;
   border: none;
+  background: transparent;
   cursor: pointer;
-  font-size: 13px;
   font-weight: 500;
   color: #6b7280;
   transition: all 0.2s ease;
@@ -94,20 +106,20 @@
 }
 
 .astra-tab:hover {
-  color: #374151;
-  background: #f3f4f6;
+  background: rgba(102, 126, 234, 0.05);
+  color: #667eea;
 }
 
 .astra-tab.active {
   color: #667eea;
-  background: #ffffff;
   border-bottom-color: #667eea;
+  background: white;
 }
 
 .astra-content {
-  flex: 1;
-  overflow-y: auto;
   padding: 20px;
+  max-height: 60vh;
+  overflow-y: auto;
 }
 
 .astra-tab-content {
@@ -116,31 +128,6 @@
 
 .astra-tab-content.active {
   display: block;
-}
-
-.astra-upload-section {
-  margin-bottom: 20px;
-}
-
-.astra-upload-label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 500;
-  color: #374151;
-}
-
-#design-upload {
-  width: 100%;
-  padding: 8px;
-  border: 2px dashed #d1d5db;
-  border-radius: 8px;
-  margin-bottom: 12px;
-  cursor: pointer;
-  transition: border-color 0.2s ease;
-}
-
-#design-upload:hover {
-  border-color: #667eea;
 }
 
 .astra-btn {
@@ -163,26 +150,6 @@
 
 .astra-btn:active {
   transform: translateY(0);
-}
-
-.astra-overlay-controls {
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 16px;
-  margin-bottom: 20px;
-}
-
-.astra-overlay-controls label {
-  display: block;
-  margin-bottom: 12px;
-  font-weight: 500;
-  color: #374151;
-}
-
-.astra-overlay-controls input[type="range"] {
-  width: 100%;
-  margin: 8px 0;
 }
 
 .astra-results {
@@ -244,241 +211,88 @@
   background: #fff7ed;
   border: 1px solid #fed7aa;
   border-radius: 8px;
-  padding: 16px;
-  margin-bottom: 12px;
-}
-
-.astra-violation h4 {
-  margin: 0 0 8px 0;
-  color: #ea580c;
-  font-size: 14px;
-}
-
-.astra-violation p {
-  margin: 4px 0;
-  font-size: 13px;
-  color: #7c2d12;
-}
-
-.astra-violation details {
-  margin-top: 8px;
-}
-
-.astra-violation summary {
-  cursor: pointer;
-  color: #ea580c;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.astra-violation a {
-  color: #ea580c;
-  text-decoration: none;
-}
-
-.astra-violation a:hover {
-  text-decoration: underline;
-}
-
-.astra-analysis-result,
-.astra-ai-analysis {
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  border-radius: 8px;
-  padding: 16px;
-}
-
-.astra-analysis-result h3,
-.astra-ai-analysis h3 {
-  margin: 0 0 12px 0;
-  color: #15803d;
-  font-size: 16px;
-}
-
-.astra-analysis-content {
-  color: #166534;
-  line-height: 1.6;
-}
-
-/* Design Overlay Image */
-.astra-design-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  pointer-events: none;
-  z-index: 2147483646;
-  opacity: 0.5;
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: top left;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  #astra-overlay {
-    width: 90vw;
-    right: 5vw;
-    max-height: 90vh;
-  }
-}
-
-/* Enhanced Accessibility Results Styling */
-.astra-audit-summary {
-  background: #f0f9ff;
-  border: 1px solid #bae6fd;
-  border-radius: 8px;
-  padding: 16px;
-  margin-bottom: 20px;
-}
-
-.astra-audit-summary h3 {
-  margin: 0 0 12px 0;
-  color: #0369a1;
-  font-size: 16px;
-}
-
-.astra-stats {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
   margin-bottom: 16px;
-}
-
-.astra-stat {
-  background: white;
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 500;
-  border: 1px solid #e0f2fe;
-}
-
-.astra-stat-pass {
-  background: #f0fff4;
-  border-color: #bbf7d0;
-  color: #166534;
-}
-
-.astra-stat-violations {
-  background: #fff5f5;
-  border-color: #fecaca;
-  color: #dc2626;
-}
-
-.astra-stat-incomplete {
-  background: #fffbeb;
-  border-color: #fed7aa;
-  color: #d97706;
-}
-
-.astra-export-btn {
-  font-size: 12px;
-  padding: 6px 12px;
-  margin-top: 8px;
-}
-
-.astra-violation {
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
 }
 
 .astra-violation-header {
+  background: #fef3c7;
+  padding: 12px 16px;
+  border-bottom: 1px solid #fed7aa;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 16px;
 }
 
 .astra-violation-header h4 {
   margin: 0;
-  color: #dc2626;
-  font-size: 16px;
+  color: #92400e;
+  font-size: 14px;
+  font-weight: 600;
   flex: 1;
 }
 
 .astra-impact {
-  padding: 4px 8px;
+  background: #dc2626;
+  color: white;
+  padding: 2px 6px;
   border-radius: 4px;
   font-size: 10px;
-  font-weight: 600;
+  font-weight: bold;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.astra-impact-critical {
-  background: #fef2f2;
-  color: #dc2626;
-  border: 1px solid #fecaca;
-}
-
-.astra-impact-serious {
-  background: #fff7ed;
-  color: #ea580c;
-  border: 1px solid #fed7aa;
-}
-
-.astra-impact-moderate {
-  background: #fffbeb;
-  color: #d97706;
-  border: 1px solid #fde68a;
 }
 
 .astra-impact-minor {
-  background: #fefce8;
-  color: #ca8a04;
-  border: 1px solid #fef08a;
+  background: #fbbf24;
+  color: #92400e;
+}
+
+.astra-impact-moderate {
+  background: #f97316;
+}
+
+.astra-impact-serious {
+  background: #dc2626;
+}
+
+.astra-impact-critical {
+  background: #7c2d12;
 }
 
 .astra-violation-info {
-  margin-bottom: 20px;
-  padding: 12px;
-  background: #f8fafc;
-  border-radius: 6px;
+  padding: 16px;
+  background: white;
 }
 
 .astra-violation-info p {
-  margin: 4px 0;
-  font-size: 13px;
-  color: #475569;
+  margin: 8px 0;
+  color: #374151;
 }
 
-.astra-help-link {
-  color: #2563eb;
-  text-decoration: none;
+.astra-violation-info code {
+  background: #f3f4f6;
+  padding: 2px 4px;
+  border-radius: 3px;
   font-size: 12px;
-  font-weight: 500;
-}
-
-.astra-help-link:hover {
-  text-decoration: underline;
+  color: #1f2937;
+  font-family: 'Monaco', 'Consolas', 'Courier New', monospace;
 }
 
 .astra-violation-examples {
-  margin-top: 16px;
-}
-
-.astra-violation-examples h5 {
-  margin: 0 0 12px 0;
-  color: #374151;
-  font-size: 14px;
-  font-weight: 600;
+  border-top: 1px solid #fed7aa;
 }
 
 .astra-violation-example {
-  margin-bottom: 24px;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  overflow: hidden;
+  background: white;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.astra-violation-example:last-child {
+  border-bottom: none;
 }
 
 .astra-code-section {
-  margin-bottom: 0;
+  margin: 0;
 }
 
 .astra-code-header {
@@ -486,29 +300,29 @@
   justify-content: space-between;
   align-items: center;
   padding: 8px 12px;
-  background: #f1f5f9;
+  background: #f8fafc;
   border-bottom: 1px solid #e2e8f0;
+  font-size: 12px;
+  font-weight: 500;
 }
 
 .astra-code-label {
-  font-size: 12px;
-  font-weight: 600;
   color: #475569;
 }
 
 .astra-copy-btn {
-  background: #4f46e5;
-  color: white;
+  background: #e2e8f0;
   border: none;
   padding: 4px 8px;
   border-radius: 4px;
-  font-size: 11px;
   cursor: pointer;
+  font-size: 10px;
+  color: #475569;
   transition: all 0.2s ease;
 }
 
 .astra-copy-btn:hover {
-  background: #4338ca;
+  background: #cbd5e1;
   transform: translateY(-1px);
 }
 
@@ -579,8 +393,108 @@
   border-radius: 8px;
 }
 
+/* AI Analysis Specific Styles */
+.astra-analysis-header {
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.astra-analysis-header h3 {
+  margin: 0 0 8px 0;
+  color: #0369a1;
+  font-size: 16px;
+}
+
+.astra-timestamp {
+  color: #6b7280;
+  font-size: 12px;
+  margin: 0;
+}
+
+.astra-analysis-content {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+  line-height: 1.6;
+}
+
+.astra-analysis-content h4 {
+  color: #1f2937;
+  margin: 16px 0 8px 0;
+  font-size: 14px;
+}
+
+.astra-analysis-content h5 {
+  color: #374151;
+  margin: 12px 0 6px 0;
+  font-size: 13px;
+}
+
+.astra-analysis-content ul {
+  margin: 8px 0;
+  padding-left: 20px;
+}
+
+.astra-analysis-content li {
+  margin: 4px 0;
+  color: #4b5563;
+}
+
+.astra-ai-mock {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border: 1px solid #f59e0b;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.astra-mock-note {
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid #93c5fd;
+  border-radius: 6px;
+  padding: 8px;
+  margin-top: 12px;
+  font-size: 12px;
+  color: #1e40af;
+}
+
+.astra-troubleshooting {
+  margin: 12px 0;
+}
+
+.astra-troubleshooting ul {
+  margin: 8px 0;
+  padding-left: 20px;
+}
+
+.astra-troubleshooting li {
+  margin: 4px 0;
+  color: #6b7280;
+}
+
+.astra-error-actions {
+  margin-top: 16px;
+  display: flex;
+  gap: 8px;
+}
+
+.astra-error-actions .astra-btn {
+  flex: 1;
+  font-size: 12px;
+  padding: 8px 12px;
+}
+
 /* Responsive adjustments for code blocks */
 @media (max-width: 768px) {
+  .astra-panel {
+    width: calc(100% - 40px);
+    right: 20px;
+    left: 20px;
+  }
+  
   .astra-code-header {
     flex-direction: column;
     gap: 8px;

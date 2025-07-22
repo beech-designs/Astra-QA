@@ -1,8 +1,8 @@
-# 🔍 Astra - AI Design & Accessibility Validator
+# 🔍 Astra - AI Accessibility Validator
 
 ## Complete Setup & Deployment Guide
 
-Astra is a Chrome Extension that overlays websites to validate design consistency and accessibility using AI-powered analysis. This guide will help you set up both the Chrome extension and the Vercel backend.
+Astra is a Chrome Extension that overlays websites to validate accessibility using AI-powered analysis. This guide will help you set up both the Chrome extension and the Vercel backend.
 
 ## 🏗️ Architecture Overview
 
@@ -89,8 +89,7 @@ Create these files in your `astra-backend` directory:
 
 ### 3. Add API Routes
 
-Copy the API routes from the "Vercel Backend API Routes" artifact:
-- `pages/api/analyze-design.js`
+Copy the API routes from the artifacts:
 - `pages/api/ai-analysis.js`
 - `pages/api/health.js`
 - `pages/index.js`
@@ -150,11 +149,12 @@ Or manually download from https://cdnjs.cloudflare.com/ajax/libs/axe-core/4.8.2/
 
 Create these files in your `astra-extension` directory:
 
-- `manifest.json` (from Chrome Extension Manifest artifact)
-- `content.js` (from Content Script artifact)
-- `overlay.css` (from Overlay CSS artifact)
-- `popup.html` (from Extension Popup artifact)
-- `axe.min.js` (download from https://cdnjs.cloudflare.com/ajax/libs/axe-core/4.8.2/axe.min.js)
+- `manifest.json` (Chrome Extension Manifest)
+- `content.js` (Updated Content Script - without Design QA)
+- `background.js` (Updated Background Script - without Design QA)
+- `overlay.css` (Updated Overlay CSS - without Design QA)
+- `popup.html` (Extension Popup)
+- `axe.min.js` (download from CDN)
 
 ### 4. Create Icons Directory
 
@@ -169,7 +169,7 @@ Add these icon files (create simple PNG icons or use placeholders):
 
 ### 5. Update Backend URL
 
-In `content.js`, update the backend URL to match your Vercel deployment:
+In `content.js` and `background.js`, update the backend URL to match your Vercel deployment:
 ```javascript
 this.backendUrl = 'https://your-astra-backend.vercel.app';
 ```
@@ -188,11 +188,11 @@ this.backendUrl = 'https://your-astra-backend.vercel.app';
 
 1. Visit any website (e.g., https://example.com)
 2. Click the Astra extension icon or press Alt+A
-3. The overlay panel should appear
+3. The overlay panel should appear with two tabs: Accessibility and AI Analysis
 
 ### 2. Test Accessibility Audit
 
-1. In the Astra panel, click "Accessibility" tab
+1. In the Astra panel, click "Accessibility" tab (should be the default active tab)
 2. Click "Run Accessibility Audit"
 3. Should show accessibility results (or error if axe-core fails to load)
 
@@ -220,23 +220,23 @@ The extension requests these permissions:
 ## 📊 Features
 
 ### ✅ Implemented Features
-- **Overlay UI Panel** - Floating interface with tabs
+- **Overlay UI Panel** - Floating interface with two tabs (Accessibility, AI Analysis)
 - **DOM Style Extraction** - Automatic `getComputedStyle()` analysis
-- **Accessibility Audit** - axe-core integration
-- **Claude AI Analysis** - Backend API with AI insights
-- **Screenshot Upload** - Design comparison interface
+- **Accessibility Audit** - axe-core integration with detailed violation reports
+- **Claude AI Analysis** - Backend API with AI insights for accessibility and UX
 - **Keyboard Shortcuts** - Alt+A to toggle
+- **Error Handling** - Comprehensive error reporting and troubleshooting
 
 ### ⚠️ Manual Configuration Required
-- **Vercel Backend URL** - Update in `content.js`
+- **Vercel Backend URL** - Update in `content.js` and `background.js`
 - **Claude API Key** - Add to Vercel environment variables
 - **Extension Icons** - Create PNG icons in `icons/` directory
 
 ### 🔄 Optional Enhancements
-- **html2canvas integration** - For automatic page screenshots
-- **pixelmatch comparison** - Visual diff analysis
 - **Export functionality** - Save reports as PDF/HTML
 - **Design system detection** - Identify CSS frameworks
+- **Performance analysis** - Additional metrics and recommendations
+- **Custom accessibility rules** - Organization-specific compliance checks
 
 ## 🐛 Troubleshooting
 
@@ -252,14 +252,15 @@ The extension requests these permissions:
 - Try clicking the extension icon instead of keyboard shortcut
 
 ### Accessibility Audit Fails
-- Ensure axe-core loads from CDN
+- Ensure axe-core loads properly (check `axe.min.js` file exists)
 - Check network connectivity
-- Verify CSP policies don't block external scripts
+- Verify CSP policies don't block scripts
 
 ### AI Analysis Doesn't Work
 - Verify Vercel backend is deployed and accessible
 - Check Claude API key is configured correctly
 - Monitor Vercel function logs for errors
+- Test `/api/health` endpoint directly
 
 ### Backend API Errors
 - Check Vercel deployment logs
@@ -288,13 +289,13 @@ The extension requests these permissions:
 
 - [ ] Vercel backend deployed successfully
 - [ ] Claude API key configured in Vercel
-- [ ] Backend URL updated in content.js
+- [ ] Backend URL updated in content.js and background.js
 - [ ] Chrome extension loaded in developer mode
 - [ ] Icons created and added to extension
-- [ ] Tested basic functionality
+- [ ] Tested basic functionality (Alt+A shortcut)
 - [ ] Tested accessibility audit
 - [ ] Tested AI analysis
-- [ ] Verified keyboard shortcuts work
+- [ ] Verified extension works on various websites
 
 ## 📞 Support
 
@@ -303,6 +304,7 @@ For issues or questions:
 2. Review Vercel function logs
 3. Test backend endpoints directly
 4. Verify all environment variables are set
+5. Check extension permissions in Chrome
 
 ## 🔒 Security Notes
 
@@ -310,7 +312,17 @@ For issues or questions:
 - Use environment variables for sensitive data
 - Validate all user inputs in backend
 - Implement rate limiting if needed
+- Regular security updates for dependencies
+
+## 🔄 API Changes
+
+### Removed Endpoints
+- `/api/analyze-design` - Design QA functionality removed
+
+### Current Endpoints
+- `GET /api/health` - Health check
+- `POST /api/ai-analysis` - AI-powered accessibility and UX analysis
 
 ---
 
-**Ready to analyze websites with AI-powered insights! 🚀**
+**Ready to analyze websites with AI-powered accessibility insights! ♿🚀**
