@@ -1,7 +1,8 @@
 // content.js
+
 class AstraAnalyzer {
   constructor() {
-    this.backendUrl = 'https://your-astra-backend.vercel.app'; // Update with your URL
+    this.backendUrl = 'https://astra-qa.vercel.app'; 
     this.domAnalysis = null;
     this.axeResults = null;
     this.screenshot = null;
